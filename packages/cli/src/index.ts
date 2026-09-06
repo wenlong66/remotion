@@ -58,6 +58,10 @@ const {packageManagerOption, skipSkillsOption, versionFlagOption} =
 
 export const cli = async () => {
 	const [command, ...args] = parsedCli._;
+	if (parsedCli.help) {
+		printHelp('info', command ?? null);
+		return;
+	}
 
 	const packageManager = packageManagerOption.getValue({
 		commandLine: parsedCli,
@@ -161,16 +165,14 @@ export const cli = async () => {
 		} else if (command === 'benchmark') {
 			await benchmarkCommand(remotionRoot, args, logLevel);
 		} else if (command === 'help') {
-			printHelp(logLevel);
+			printHelp(logLevel, null);
 			process.exit(0);
-		} else if (parsedCli.help) {
-			printHelp(logLevel);
 		} else {
 			if (command) {
 				Log.error({indent: false, logLevel}, `Command ${command} not found.`);
 			}
 
-			printHelp(logLevel);
+			printHelp(logLevel, null);
 			process.exit(1);
 		}
 	} catch (err) {
