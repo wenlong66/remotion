@@ -123,38 +123,42 @@ test('the Remotion CLI delegates Cloud Run help before loading config', () => {
 	delete childEnvironment.FORCE_COLOR;
 
 	try {
-		const result = spawnSync(
-			'node',
-			[
-				path.join(exampleDirectory, '..', 'cli', 'remotion-cli.js'),
-				'cloudrun',
-				'render',
-				'--help',
-				'--log=error',
-			],
-			{
-				cwd: temporaryDirectory,
-				encoding: 'utf8',
-				env: childEnvironment,
-				stdio: ['ignore', 'pipe', 'pipe'],
-				timeout: 10_000,
-			},
-		);
+		for (const invocation of [
+			['cloudrun', 'render', '--help'],
+			['help', 'cloudrun', 'render'],
+		]) {
+			const result = spawnSync(
+				'node',
+				[
+					path.join(exampleDirectory, '..', 'cli', 'remotion-cli.js'),
+					...invocation,
+					'--log=error',
+				],
+				{
+					cwd: temporaryDirectory,
+					encoding: 'utf8',
+					env: childEnvironment,
+					stdio: ['ignore', 'pipe', 'pipe'],
+					timeout: 10_000,
+				},
+			);
 
-		if (result.error) {
-			throw result.error;
+			if (result.error) {
+				throw result.error;
+			}
+
+			expect(result.signal).toBeNull();
+			expect(result.status).toBe(0);
+			expect(result.stderr).toBe('');
+			expect(result.stdout).toStartWith('remotion cloudrun render ');
+			expect(result.stdout).not.toContain('©');
+			expect(result.stdout).toContain('remotion cloudrun render');
+			expect(result.stdout).toContain('--service-name <service-name>');
+			expect(result.stdout).toContain(
+				'https://www.remotion.dev/docs/cloudrun/cli/render',
+			);
 		}
 
-		expect(result.signal).toBeNull();
-		expect(result.status).toBe(0);
-		expect(result.stderr).toBe('');
-		expect(result.stdout).toStartWith('remotion cloudrun render ');
-		expect(result.stdout).not.toContain('©');
-		expect(result.stdout).toContain('remotion cloudrun render');
-		expect(result.stdout).toContain('--service-name <service-name>');
-		expect(result.stdout).toContain(
-			'https://www.remotion.dev/docs/cloudrun/cli/render',
-		);
 		expect(readdirSync(temporaryDirectory)).toEqual(initialFiles);
 	} finally {
 		rmSync(temporaryDirectory, {recursive: true, force: true});

@@ -176,38 +176,42 @@ test('the Remotion CLI delegates Lambda help before loading config', () => {
 	delete childEnvironment.FORCE_COLOR;
 
 	try {
-		const result = spawnSync(
-			'node',
-			[
-				path.join(exampleDirectory, '..', 'cli', 'remotion-cli.js'),
-				'lambda',
-				'render',
-				'--help',
-				'--log=error',
-			],
-			{
-				cwd: temporaryDirectory,
-				encoding: 'utf8',
-				env: childEnvironment,
-				stdio: ['ignore', 'pipe', 'pipe'],
-				timeout: 10_000,
-			},
-		);
+		for (const invocation of [
+			['lambda', 'render', '--help'],
+			['help', 'lambda', 'render'],
+		]) {
+			const result = spawnSync(
+				'node',
+				[
+					path.join(exampleDirectory, '..', 'cli', 'remotion-cli.js'),
+					...invocation,
+					'--log=error',
+				],
+				{
+					cwd: temporaryDirectory,
+					encoding: 'utf8',
+					env: childEnvironment,
+					stdio: ['ignore', 'pipe', 'pipe'],
+					timeout: 10_000,
+				},
+			);
 
-		if (result.error) {
-			throw result.error;
+			if (result.error) {
+				throw result.error;
+			}
+
+			expect(result.signal).toBeNull();
+			expect(result.status).toBe(0);
+			expect(result.stderr).toBe('');
+			expect(result.stdout).toStartWith('remotion lambda render ');
+			expect(result.stdout).not.toContain('©');
+			expect(result.stdout).toContain('remotion lambda render');
+			expect(result.stdout).toContain('--frames-per-lambda <count>');
+			expect(result.stdout).toContain(
+				'https://www.remotion.dev/docs/lambda/cli/render',
+			);
 		}
 
-		expect(result.signal).toBeNull();
-		expect(result.status).toBe(0);
-		expect(result.stderr).toBe('');
-		expect(result.stdout).toStartWith('remotion lambda render ');
-		expect(result.stdout).not.toContain('©');
-		expect(result.stdout).toContain('remotion lambda render');
-		expect(result.stdout).toContain('--frames-per-lambda <count>');
-		expect(result.stdout).toContain(
-			'https://www.remotion.dev/docs/lambda/cli/render',
-		);
 		expect(readdirSync(temporaryDirectory)).toEqual(initialFiles);
 	} finally {
 		rmSync(temporaryDirectory, {recursive: true, force: true});

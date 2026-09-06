@@ -100,49 +100,80 @@ test('prints command-specific help without running the command', () => {
 			options,
 			excludedOptions = [],
 		} of commandHelpPages) {
-			const result = spawnSync(
-				'node',
-				[cliPath, ...args, '--help', '--log=error'],
-				{
-					cwd: temporaryDirectory,
-					encoding: 'utf8',
-					env: childEnvironment,
-					stdio: ['ignore', 'pipe', 'pipe'],
-					timeout: 10_000,
-				},
-			);
+			for (const invocation of [
+				[...args, '--help'],
+				['help', ...args],
+			]) {
+				const result = spawnSync(
+					'node',
+					[cliPath, ...invocation, '--log=error'],
+					{
+						cwd: temporaryDirectory,
+						encoding: 'utf8',
+						env: childEnvironment,
+						stdio: ['ignore', 'pipe', 'pipe'],
+						timeout: 10_000,
+					},
+				);
 
-			if (result.error) {
-				throw result.error;
-			}
+				if (result.error) {
+					throw result.error;
+				}
 
-			expect(result.signal).toBeNull();
-			expect(result.status).toBe(0);
-			expect(result.stderr).toBe('');
-			expect(result.stdout).toContain(`remotion ${args.join(' ')}`);
-			expect(result.stdout).toContain(
-				`https://www.remotion.dev${documentation}`,
-			);
-			expect(result.stdout).not.toContain('Available commands:');
-			expect(result.stdout).toContain('Options:');
-			for (const option of ['--help', ...options]) {
-				const optionLine = result.stdout.split('\n').find((line) => {
-					const trimmed = line.trimStart();
-					return (
-						trimmed.startsWith(`${option} `) || trimmed.startsWith(`${option},`)
-					);
-				});
-				if (!optionLine) {
-					throw new Error(
-						`Expected \`remotion ${args.join(' ')} --help\` to document ${option}`,
-					);
+				expect(result.signal).toBeNull();
+				expect(result.status).toBe(0);
+				expect(result.stderr).toBe('');
+				expect(result.stdout).toContain(`remotion ${args.join(' ')}`);
+				expect(result.stdout).toContain(
+					`https://www.remotion.dev${documentation}`,
+				);
+				expect(result.stdout).not.toContain('Available commands:');
+				expect(result.stdout).toContain('Options:');
+				for (const option of ['--help', ...options]) {
+					const optionLine = result.stdout.split('\n').find((line) => {
+						const trimmed = line.trimStart();
+						return (
+							trimmed.startsWith(`${option} `) ||
+							trimmed.startsWith(`${option},`)
+						);
+					});
+					if (!optionLine) {
+						throw new Error(
+							`Expected \`remotion ${invocation.join(' ')}\` to document ${option}`,
+						);
+					}
+				}
+
+				for (const option of excludedOptions) {
+					expect(result.stdout).not.toContain(option);
 				}
 			}
-
-			for (const option of excludedOptions) {
-				expect(result.stdout).not.toContain(option);
-			}
 		}
+
+		const helpCommandResult = spawnSync(
+			'node',
+			[cliPath, 'help', '--log=error'],
+			{
+				cwd: temporaryDirectory,
+				encoding: 'utf8',
+				env: childEnvironment,
+				stdio: ['ignore', 'pipe', 'pipe'],
+				timeout: 10_000,
+			},
+		);
+
+		if (helpCommandResult.error) {
+			throw helpCommandResult.error;
+		}
+
+		expect(helpCommandResult.signal).toBeNull();
+		expect(helpCommandResult.status).toBe(0);
+		expect(helpCommandResult.stderr).toBe('');
+		expect(helpCommandResult.stdout).toContain('Available commands:');
+		expect(helpCommandResult.stdout).toContain('remotion render');
+		expect(helpCommandResult.stdout).toContain(
+			'https://www.remotion.dev/docs/cli',
+		);
 
 		expect(readdirSync(temporaryDirectory)).toEqual(initialFiles);
 	} finally {

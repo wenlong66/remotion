@@ -59,19 +59,24 @@ const {packageManagerOption, skipSkillsOption, versionFlagOption} =
 
 export const cli = async () => {
 	const [command, ...args] = parsedCli._;
-	if (parsedCli.help) {
-		if (command === 'lambda' || command === 'cloudrun') {
+	const helpPath =
+		command === 'help' && (args.length > 0 || !parsedCli.help)
+			? args
+			: parsedCli._;
+	if (parsedCli.help || command === 'help') {
+		const [helpCommand, ...helpArgs] = helpPath;
+		if (helpCommand === 'lambda' || helpCommand === 'cloudrun') {
 			const helpRemotionRoot = RenderInternals.findRemotionRoot();
 			const printed =
-				command === 'lambda'
-					? tryPrintLambdaHelp(helpRemotionRoot, args, 'info')
-					: tryPrintCloudrunHelp(helpRemotionRoot, args, 'info');
+				helpCommand === 'lambda'
+					? tryPrintLambdaHelp(helpRemotionRoot, helpArgs, 'info')
+					: tryPrintCloudrunHelp(helpRemotionRoot, helpArgs, 'info');
 			if (printed) {
 				return;
 			}
 		}
 
-		printHelp('info', parsedCli._);
+		printHelp('info', helpPath);
 		return;
 	}
 
@@ -176,9 +181,6 @@ export const cli = async () => {
 			await browserCommand(args, logLevel);
 		} else if (command === 'benchmark') {
 			await benchmarkCommand(remotionRoot, args, logLevel);
-		} else if (command === 'help') {
-			printHelp(logLevel, []);
-			process.exit(0);
 		} else {
 			if (command) {
 				Log.error({indent: false, logLevel}, `Command ${command} not found.`);
