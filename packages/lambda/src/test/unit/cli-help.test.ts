@@ -172,6 +172,8 @@ test('the Remotion CLI delegates Lambda help before loading config', () => {
 		`throw new Error('The config file must not be loaded for --help');\n`,
 	);
 	const initialFiles = readdirSync(temporaryDirectory);
+	const childEnvironment: NodeJS.ProcessEnv = {...process.env, NO_COLOR: '1'};
+	delete childEnvironment.FORCE_COLOR;
 
 	try {
 		const result = spawnSync(
@@ -186,7 +188,7 @@ test('the Remotion CLI delegates Lambda help before loading config', () => {
 			{
 				cwd: temporaryDirectory,
 				encoding: 'utf8',
-				env: {...process.env, NO_COLOR: '1'},
+				env: childEnvironment,
 				stdio: ['ignore', 'pipe', 'pipe'],
 				timeout: 10_000,
 			},

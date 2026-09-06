@@ -90,6 +90,8 @@ test('prints command-specific help without running the command', () => {
 		`throw new Error('The config file must not be loaded for --help');\n`,
 	);
 	const initialFiles = readdirSync(temporaryDirectory);
+	const childEnvironment: NodeJS.ProcessEnv = {...process.env, NO_COLOR: '1'};
+	delete childEnvironment.FORCE_COLOR;
 
 	try {
 		for (const {
@@ -104,7 +106,7 @@ test('prints command-specific help without running the command', () => {
 				{
 					cwd: temporaryDirectory,
 					encoding: 'utf8',
-					env: {...process.env, NO_COLOR: '1'},
+					env: childEnvironment,
 					stdio: ['ignore', 'pipe', 'pipe'],
 					timeout: 10_000,
 				},
