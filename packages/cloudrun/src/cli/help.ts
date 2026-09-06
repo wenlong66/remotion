@@ -349,14 +349,17 @@ export const printHelp = (
 	selectedPath: readonly string[],
 	logLevel: LogLevel,
 ) => {
-	Log.info(
-		{indent: false, logLevel},
-		`${BINARY_NAME} ${
-			packagejson.version
-		} © ${new Date().getFullYear()} The Remotion developers`,
-	);
+	if (selectedPath.length === 0) {
+		Log.info(
+			{indent: false, logLevel},
+			`${BINARY_NAME} ${
+				packagejson.version
+			} © ${new Date().getFullYear()} The Remotion developers`,
+		);
+	}
 
-	for (const line of getCloudrunHelp(selectedPath)) {
+	const lines = getCloudrunHelp(selectedPath);
+	for (const line of selectedPath.length === 0 ? lines : lines.slice(1)) {
 		Log.info({indent: false, logLevel}, line);
 	}
 };

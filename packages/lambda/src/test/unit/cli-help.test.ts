@@ -199,6 +199,8 @@ test('the Remotion CLI delegates Lambda help before loading config', () => {
 		expect(result.signal).toBeNull();
 		expect(result.status).toBe(0);
 		expect(result.stderr).toBe('');
+		expect(result.stdout).toStartWith('remotion lambda render ');
+		expect(result.stdout).not.toContain('©');
 		expect(result.stdout).toContain('remotion lambda render');
 		expect(result.stdout).toContain('--frames-per-lambda <count>');
 		expect(result.stdout).toContain(

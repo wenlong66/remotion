@@ -146,6 +146,8 @@ test('the Remotion CLI delegates Cloud Run help before loading config', () => {
 		expect(result.signal).toBeNull();
 		expect(result.status).toBe(0);
 		expect(result.stderr).toBe('');
+		expect(result.stdout).toStartWith('remotion cloudrun render ');
+		expect(result.stdout).not.toContain('©');
 		expect(result.stdout).toContain('remotion cloudrun render');
 		expect(result.stdout).toContain('--service-name <service-name>');
 		expect(result.stdout).toContain(
