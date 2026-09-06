@@ -1,163 +1,467 @@
 import type {LogLevel} from '@remotion/renderer';
+import {BrowserSafeApis} from '@remotion/renderer/client';
 import {BROWSER_COMMAND} from './browser';
-import {chalk} from './chalk';
+import {
+	type CommandHelpEntry,
+	type CommandHelpOption,
+	getCommandHelp,
+	makeCommandHelpOption,
+} from './command-help';
 import {GPU_COMMAND} from './gpu';
 import {Log} from './log';
 import {VERSIONS_COMMAND} from './versions';
 
 const packagejson = require('../package.json');
 
-type CommandHelp = {
-	name: string;
-	aliases: readonly string[];
-	args: string;
-	description: string;
-	documentation: string;
+const rendererOptions = Object.values(BrowserSafeApis.options);
+
+const cliOnlyOptions: Record<string, CommandHelpOption> = {
+	output: {
+		flag: '--output <path>',
+		description: 'Set the output path instead of using a positional argument.',
+	},
+	'browser-args': {
+		flag: '--browser-args <arguments>',
+		description: 'Pass command line arguments to the browser.',
+	},
+	quiet: {
+		flag: '--quiet, -q',
+		description: 'Reduce console output.',
+	},
 };
 
-const commandHelp: readonly CommandHelp[] = [
+const options = (
+	flags: readonly string[],
+	descriptionOverrides: Record<string, string> = {},
+): CommandHelpOption[] => {
+	return flags.map((flag) => {
+		const cliOnlyOption = cliOnlyOptions[flag];
+		if (cliOnlyOption) {
+			return cliOnlyOption;
+		}
+
+		const rendererOption = rendererOptions.find(
+			(candidate) => candidate.cliFlag === flag,
+		);
+		if (!rendererOption) {
+			throw new Error(`No CLI help metadata exists for --${flag}`);
+		}
+
+		return makeCommandHelpOption({
+			option: rendererOption,
+			description: descriptionOverrides[flag],
+		});
+	});
+};
+
+const studioOptions = options([
+	'props',
+	'config',
+	'env-file',
+	'log',
+	'port',
+	'public-dir',
+	'binaries-directory',
+	'disable-git-source',
+	'audio-latency-hint',
+	'disable-keyboard-shortcuts',
+	'disable-interactivity',
+	'allow-html-in-canvas',
+	'editor',
+	'coding-agent',
+	'rspack',
+	'webpack-poll',
+	'no-open',
+	'browser',
+	'browser-args',
+	'beep-on-finish',
+	'ipv4',
+	'number-of-shared-audio-tags',
+	'experimental-keep-audio-context-alive',
+	'preview-sample-rate',
+	'cross-site-isolation',
+	'disable-ask-ai',
+	'force-new',
+	'public-license-key',
+]);
+
+const commandHelp: readonly CommandHelpEntry[] = [
 	{
-		name: 'studio',
-		aliases: ['preview'],
+		path: ['studio'],
 		args: ' <entry-point>?',
 		description: 'Start the Remotion Studio.',
 		documentation: 'https://www.remotion.dev/docs/cli/studio',
+		options: studioOptions,
 	},
 	{
-		name: 'render',
-		aliases: [],
-		args: ' <entry-point|serve-url>? <composition-id> <output-location>',
+		path: ['preview'],
+		args: ' <entry-point>?',
+		description: 'Start the Remotion Studio.',
+		documentation: 'https://www.remotion.dev/docs/cli/studio',
+		options: studioOptions,
+		listed: false,
+	},
+	{
+		path: ['render'],
+		args: ' [<entry-point|serve-url>] [<composition-id>] [<output-location>]',
 		description: 'Render video, audio or an image sequence.',
 		documentation: 'https://www.remotion.dev/docs/cli/render',
+		options: options(
+			[
+				'props',
+				'height',
+				'width',
+				'fps',
+				'duration',
+				'concurrency',
+				'pixel-format',
+				'image-format',
+				'image-sequence-pattern',
+				'config',
+				'env-file',
+				'jpeg-quality',
+				'output',
+				'overwrite',
+				'sequence',
+				'codec',
+				'audio-codec',
+				'audio-bitrate',
+				'video-bitrate',
+				'buffer-size',
+				'max-rate',
+				'prores-profile',
+				'x264-preset',
+				'gop',
+				'crf',
+				'browser-executable',
+				'chrome-mode',
+				'scale',
+				'frames',
+				'every-nth-frame',
+				'muted',
+				'enforce-audio-track',
+				'disallow-parallel-encoding',
+				'number-of-gif-loops',
+				'color-space',
+				'hardware-acceleration',
+				'bundle-cache',
+				'log',
+				'port',
+				'public-dir',
+				'public-path',
+				'audio-latency-hint',
+				'timeout',
+				'ignore-certificate-errors',
+				'disable-web-security',
+				'disable-headless',
+				'dark-mode',
+				'gl',
+				'user-agent',
+				'media-cache-size-in-bytes',
+				'offthreadvideo-cache-size-in-bytes',
+				'offthreadvideo-video-threads',
+				'enable-multiprocess-on-linux',
+				'repro',
+				'binaries-directory',
+				'rspack',
+				'disable-ask-ai',
+				'disable-keyboard-shortcuts',
+				'quiet',
+				'public-license-key',
+				'sample-rate',
+				'for-seamless-aac-concatenation',
+				'separate-audio-to',
+				'metadata',
+			],
+			{'image-format': 'Video Image Format'},
+		),
 	},
 	{
-		name: 'still',
-		aliases: [],
+		path: ['still'],
 		args: ' <serve-url|entry-point>? [<composition-id>] [<output-location>]',
 		description: 'Render a still frame and save it as an image.',
 		documentation: 'https://www.remotion.dev/docs/cli/still',
+		options: options([
+			'props',
+			'height',
+			'width',
+			'fps',
+			'duration',
+			'image-format',
+			'config',
+			'env-file',
+			'jpeg-quality',
+			'output',
+			'overwrite',
+			'browser-executable',
+			'scale',
+			'frame',
+			'bundle-cache',
+			'log',
+			'port',
+			'public-dir',
+			'public-path',
+			'audio-latency-hint',
+			'timeout',
+			'ignore-certificate-errors',
+			'disable-web-security',
+			'disable-headless',
+			'dark-mode',
+			'chrome-mode',
+			'gl',
+			'user-agent',
+			'media-cache-size-in-bytes',
+			'offthreadvideo-cache-size-in-bytes',
+			'offthreadvideo-video-threads',
+			'enable-multiprocess-on-linux',
+			'binaries-directory',
+			'rspack',
+			'disable-ask-ai',
+			'disable-keyboard-shortcuts',
+			'quiet',
+			'public-license-key',
+		]),
 	},
 	{
-		name: 'compositions',
-		aliases: [],
+		path: ['compositions'],
 		args: ' <serve-url|entry-file>?',
-		description: 'Prints the available compositions.',
+		description: 'Print the available compositions.',
 		documentation: 'https://www.remotion.dev/docs/cli/compositions',
+		options: options([
+			'props',
+			'browser-executable',
+			'config',
+			'env-file',
+			'bundle-cache',
+			'log',
+			'port',
+			'public-dir',
+			'public-path',
+			'audio-latency-hint',
+			'timeout',
+			'ignore-certificate-errors',
+			'disable-web-security',
+			'disable-headless',
+			'dark-mode',
+			'gl',
+			'enable-multiprocess-on-linux',
+			'user-agent',
+			'media-cache-size-in-bytes',
+			'offthreadvideo-cache-size-in-bytes',
+			'offthreadvideo-video-threads',
+			'binaries-directory',
+			'chrome-mode',
+			'quiet',
+			'rspack',
+			'disable-ask-ai',
+			'disable-keyboard-shortcuts',
+		]),
 	},
 	{
-		name: 'lambda',
-		aliases: [],
+		path: ['lambda'],
 		args: ' <command>',
 		description: 'Control Remotion Lambda.',
 		documentation: 'https://www.remotion.dev/docs/lambda/cli',
+		options: [],
 	},
 	{
-		name: 'bundle',
-		aliases: [],
+		path: ['bundle'],
 		args: ' <serve-url|entry-file>?',
 		description: 'Create a Remotion bundle to be deployed to the web.',
 		documentation: 'https://www.remotion.dev/docs/cli/bundle',
+		options: options([
+			'config',
+			'log',
+			'public-dir',
+			'out-dir',
+			'public-path',
+			'disable-git-source',
+			'bundle-cache',
+			'audio-latency-hint',
+			'rspack',
+			'disable-ask-ai',
+			'disable-keyboard-shortcuts',
+			'quiet',
+		]),
 	},
 	{
-		name: BROWSER_COMMAND,
-		aliases: [],
+		path: [BROWSER_COMMAND],
 		args: ' <command>',
 		description: 'Ensure Remotion has a browser it can use for rendering.',
 		documentation: 'https://www.remotion.dev/docs/cli/browser',
+		options: [],
 	},
 	{
-		name: 'cloudrun',
-		aliases: [],
+		path: [BROWSER_COMMAND, 'ensure'],
+		args: '',
+		description: 'Ensure Remotion has a browser it can use for rendering.',
+		documentation: 'https://www.remotion.dev/docs/cli/browser/ensure',
+		options: options(['browser-executable', 'log', 'quiet']),
+	},
+	{
+		path: ['cloudrun'],
 		args: ' <command>',
 		description: 'Control Remotion Cloud Run.',
 		documentation: 'https://www.remotion.dev/docs/cloudrun/cli',
+		options: [],
 	},
 	{
-		name: 'benchmark',
-		aliases: [],
-		args: ' <entry-point> [composition-ids]',
-		description:
-			'Benchmarks rendering a composition. Same options as for render.',
+		path: ['benchmark'],
+		args: ' [<entry-point>] [composition-ids]',
+		description: 'Benchmark rendering one or more compositions.',
 		documentation: 'https://www.remotion.dev/docs/cli/benchmark',
+		options: options(
+			[
+				'runs',
+				'concurrencies',
+				'concurrency',
+				'codec',
+				'crf',
+				'frames',
+				'height',
+				'width',
+				'fps',
+				'duration',
+				'image-format',
+				'pixel-format',
+				'props',
+				'prores-profile',
+				'x264-preset',
+				'gop',
+				'jpeg-quality',
+				'log',
+				'ignore-certificate-errors',
+				'disable-web-security',
+				'dark-mode',
+				'disable-headless',
+				'enable-multiprocess-on-linux',
+				'gl',
+				'chrome-mode',
+				'timeout',
+				'scale',
+				'port',
+				'number-of-gif-loops',
+				'every-nth-frame',
+				'muted',
+				'enforce-audio-track',
+				'disallow-parallel-encoding',
+				'browser-executable',
+				'user-agent',
+				'public-dir',
+				'public-path',
+				'config',
+				'env-file',
+				'bundle-cache',
+				'video-bitrate',
+				'audio-bitrate',
+				'buffer-size',
+				'max-rate',
+				'color-space',
+				'hardware-acceleration',
+				'offthreadvideo-cache-size-in-bytes',
+				'offthreadvideo-video-threads',
+				'media-cache-size-in-bytes',
+				'binaries-directory',
+				'rspack',
+				'overwrite',
+				'metadata',
+				'sample-rate',
+				'for-seamless-aac-concatenation',
+				'disable-ask-ai',
+				'disable-keyboard-shortcuts',
+				'quiet',
+			],
+			{'image-format': 'Video Image Format'},
+		),
 	},
 	{
-		name: 'skills',
-		aliases: [],
+		path: ['skills'],
 		args: ' <add | update>',
 		description: 'Install or update skills from remotion-dev/skills.',
 		documentation: 'https://www.remotion.dev/docs/cli/skills',
+		options: [],
 	},
 	{
-		name: VERSIONS_COMMAND,
-		aliases: [],
+		path: ['skills', 'add'],
+		args: ' [options]',
+		description: 'Install skills from remotion-dev/skills.',
+		documentation: 'https://www.remotion.dev/docs/cli/skills',
+		options: [],
+	},
+	{
+		path: ['skills', 'update'],
+		args: ' [options]',
+		description: 'Update skills from remotion-dev/skills.',
+		documentation: 'https://www.remotion.dev/docs/cli/skills',
+		options: [],
+	},
+	{
+		path: [VERSIONS_COMMAND],
 		args: '',
-		description: 'Prints and validates versions of all Remotion packages.',
+		description: 'Print and validate versions of all Remotion packages.',
 		documentation: 'https://www.remotion.dev/docs/cli/versions',
+		options: [],
 	},
 	{
-		name: 'upgrade',
-		aliases: [],
+		path: ['upgrade'],
 		args: '',
 		description: 'Ensure Remotion is on the newest version.',
 		documentation: 'https://www.remotion.dev/docs/cli/upgrade',
+		options: options(['package-manager', 'version', 'skip-skills']),
 	},
 	{
-		name: 'add',
-		aliases: [],
+		path: ['add'],
 		args: ' <package-name...>',
 		description: 'Add Remotion packages with the correct version.',
 		documentation: 'https://www.remotion.dev/docs/cli/add',
+		options: options(['package-manager']),
 	},
 	{
-		name: GPU_COMMAND,
-		aliases: [],
+		path: [GPU_COMMAND],
 		args: '',
-		description: 'Prints information about how Chrome uses the GPU.',
+		description: 'Print information about how Chrome uses the GPU.',
 		documentation: 'https://www.remotion.dev/docs/cli/gpu',
+		options: options([
+			'log',
+			'gl',
+			'chrome-mode',
+			'browser-executable',
+			'user-agent',
+			'disable-web-security',
+			'ignore-certificate-errors',
+			'enable-multiprocess-on-linux',
+			'timeout',
+			'disable-headless',
+			'dark-mode',
+			'quiet',
+		]),
 	},
 	{
-		name: 'ffmpeg',
-		aliases: [],
+		path: ['ffmpeg'],
 		args: ' <arguments...>',
-		description: 'Execute an FFmpeg command.',
+		description: 'Execute FFmpeg with all arguments forwarded.',
 		documentation: 'https://www.remotion.dev/docs/cli/ffmpeg',
+		options: [],
 	},
 	{
-		name: 'ffprobe',
-		aliases: [],
+		path: ['ffprobe'],
 		args: ' <arguments...>',
-		description: 'Execute an FFprobe command.',
+		description: 'Execute FFprobe with all arguments forwarded.',
 		documentation: 'https://www.remotion.dev/docs/cli/ffprobe',
+		options: [],
 	},
 	{
-		name: 'help',
-		aliases: [],
+		path: ['help'],
 		args: '',
 		description: 'Print available commands and flags for the Remotion CLI.',
 		documentation: 'https://www.remotion.dev/docs/cli/help',
+		options: [],
 	},
 ];
 
-const printCommandHelp = ({
-	command,
-	displayName,
-	logLevel,
-}: {
-	command: CommandHelp;
-	displayName: string;
-	logLevel: LogLevel;
-}) => {
-	Log.info(
-		{indent: false, logLevel},
-		chalk.blue(`remotion ${displayName}`) + chalk.gray(command.args),
-	);
-	Log.info({indent: false, logLevel}, command.description);
-	Log.info({indent: false, logLevel}, chalk.gray(command.documentation));
-};
-
 export const printHelp = (
 	logLevel: LogLevel,
-	selectedCommand: string | null,
+	selectedPath: readonly string[],
 ) => {
 	Log.info({indent: false, logLevel}, `@remotion/cli ${packagejson.version}`);
 	Log.info(
@@ -165,34 +469,12 @@ export const printHelp = (
 		`© ${new Date().getFullYear()} Remotion AG`,
 	);
 
-	if (selectedCommand !== null) {
-		const selectedCommandHelp = commandHelp.find(
-			(command) =>
-				command.name === selectedCommand ||
-				command.aliases.includes(selectedCommand),
-		);
-		if (selectedCommandHelp) {
-			Log.info({indent: false, logLevel});
-			printCommandHelp({
-				command: selectedCommandHelp,
-				displayName: selectedCommand,
-				logLevel,
-			});
-			return;
-		}
+	for (const line of getCommandHelp({
+		binaryName: 'remotion',
+		commands: commandHelp,
+		selectedPath,
+		rootDocumentation: 'https://www.remotion.dev/docs/cli',
+	})) {
+		Log.info({indent: false, logLevel}, line);
 	}
-
-	Log.info({indent: false, logLevel});
-	Log.info({indent: false, logLevel}, 'Available commands:');
-
-	for (const command of commandHelp) {
-		Log.info({indent: false, logLevel});
-		printCommandHelp({command, displayName: command.name, logLevel});
-	}
-
-	Log.info({indent: false, logLevel});
-	Log.info(
-		{indent: false, logLevel},
-		'Visit https://www.remotion.dev/docs/cli for browsable CLI documentation.',
-	);
 };

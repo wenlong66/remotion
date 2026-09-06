@@ -2,6 +2,27 @@ import type {LogLevel} from '@remotion/renderer';
 import {StudioServerInternals} from '@remotion/studio-server';
 import {Log} from './log';
 
+export const tryPrintLambdaHelp = (
+	remotionRoot: string,
+	args: string[],
+	logLevel: LogLevel,
+) => {
+	try {
+		const path = require.resolve('@remotion/lambda', {
+			paths: [remotionRoot],
+		});
+		const {LambdaInternals} = require(path);
+		if (typeof LambdaInternals?.printHelp !== 'function') {
+			return false;
+		}
+
+		LambdaInternals.printHelp(args, logLevel);
+		return true;
+	} catch {
+		return false;
+	}
+};
+
 export const lambdaCommand = async (
 	remotionRoot: string,
 	args: string[],

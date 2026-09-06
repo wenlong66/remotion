@@ -2,6 +2,27 @@ import type {LogLevel} from '@remotion/renderer';
 import {StudioServerInternals} from '@remotion/studio-server';
 import {Log} from './log';
 
+export const tryPrintCloudrunHelp = (
+	remotionRoot: string,
+	args: string[],
+	logLevel: LogLevel,
+) => {
+	try {
+		const path = require.resolve('@remotion/cloudrun', {
+			paths: [remotionRoot],
+		});
+		const {CloudrunInternals} = require(path);
+		if (typeof CloudrunInternals?.printHelp !== 'function') {
+			return false;
+		}
+
+		CloudrunInternals.printHelp(args, logLevel);
+		return true;
+	} catch {
+		return false;
+	}
+};
+
 export const cloudrunCommand = async (
 	remotionRoot: string,
 	args: string[],
