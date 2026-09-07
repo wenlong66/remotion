@@ -15,7 +15,9 @@ import {
 	WHITE,
 } from '../helpers/colors';
 import {getStudioAskAIEnabled} from '../helpers/studio-runtime-config';
+import {CaretDown} from '../icons/caret';
 import {booleanOptions, ConfigSelect} from './ConfigSelect';
+import {InlineDropdown} from './InlineDropdown';
 import {sectionHeader} from './InspectorPanel/styles';
 import {
 	askAIKeyboardShortcutGroup,
@@ -25,6 +27,7 @@ import {
 	shortcutFromKeyboardEvent,
 } from './keyboard-shortcuts';
 import {Spacing} from './layout';
+import type {ComboboxValue} from './NewComposition/ComboBox';
 import {ValidationMessage} from './NewComposition/ValidationMessage';
 import {useSettings} from './SettingsContext';
 import {useAutoSaveConfig} from './use-auto-save-config';
@@ -53,7 +56,7 @@ const shortcutRow: React.CSSProperties = {
 	borderBottom: BORDER_WHITE_ALPHA_12,
 	columnGap: 12,
 	display: 'grid',
-	gridTemplateColumns: 'minmax(0, 1fr) minmax(76px, max-content) 94px',
+	gridTemplateColumns: 'minmax(0, 1fr) minmax(76px, max-content) 24px',
 	margin: '0 16px',
 	minHeight: 42,
 };
@@ -121,21 +124,6 @@ const chordButton: React.CSSProperties = {
 	font: 'inherit',
 	margin: 0,
 	padding: '4px 0',
-};
-
-const smallButton: React.CSSProperties = {
-	background: 'transparent',
-	border: 0,
-	color: LIGHT_TEXT,
-	cursor: 'pointer',
-	fontSize: 11,
-	padding: '4px',
-};
-
-const fixedLabel: React.CSSProperties = {
-	color: LIGHT_TEXT,
-	fontSize: 11,
-	padding: '4px',
 };
 
 const alternative: React.CSSProperties = {
@@ -296,6 +284,54 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 											shortcut.actionId,
 											configuredShortcuts,
 										).map(formatKeyboardShortcut);
+							const shortcutMenuItems: ComboboxValue[] =
+								shortcut.actionId === null
+									? []
+									: [
+											...(configured
+												? [
+														{
+															id: 'reset-shortcut',
+															keyHint: null,
+															label: 'Reset to default',
+															leftItem: null,
+															onClick: () => {
+																setConfiguredShortcuts((current) => {
+																	const next = {...current};
+																	delete next[shortcut.actionId!];
+																	return next;
+																});
+																setShortcutsEdited(true);
+															},
+															quickSwitcherLabel: null,
+															subMenu: null,
+															type: 'item' as const,
+															value: 'reset-shortcut',
+														},
+													]
+												: []),
+											...(configuredShortcuts[shortcut.actionId] !== null
+												? [
+														{
+															id: 'disable-shortcut',
+															keyHint: null,
+															label: 'Disable shortcut',
+															leftItem: null,
+															onClick: () => {
+																setConfiguredShortcuts((current) => ({
+																	...current,
+																	[shortcut.actionId!]: null,
+																}));
+																setShortcutsEdited(true);
+															},
+															quickSwitcherLabel: null,
+															subMenu: null,
+															type: 'item' as const,
+															value: 'disable-shortcut',
+														},
+													]
+												: []),
+										];
 
 							return (
 								<div
@@ -314,13 +350,7 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 											<span style={shortcutCell}>
 												<ShortcutChords values={shortcutValues} />
 											</span>
-											<span style={actionCell}>
-												{shortcut.actionId === null ? (
-													<span style={fixedLabel} title={shortcut.fixedReason}>
-														Fixed
-													</span>
-												) : null}
-											</span>
+											<span />
 										</>
 									) : (
 										<>
@@ -382,39 +412,12 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 												</button>
 											</span>
 											<span style={actionCell}>
-												{configured ? (
-													<button
-														type="button"
-														style={smallButton}
-														title="Reset to default"
-														onClick={() => {
-															setConfiguredShortcuts((current) => {
-																const next = {...current};
-																delete next[shortcut.actionId!];
-																return next;
-															});
-															setShortcutsEdited(true);
-														}}
-													>
-														Reset
-													</button>
-												) : null}
-												{configuredShortcuts[shortcut.actionId] !== null ? (
-													<button
-														type="button"
-														style={smallButton}
-														title="Disable shortcut"
-														onClick={() => {
-															setConfiguredShortcuts((current) => ({
-																...current,
-																[shortcut.actionId!]: null,
-															}));
-															setShortcutsEdited(true);
-														}}
-													>
-														Disable
-													</button>
-												) : null}
+												<InlineDropdown
+													renderAction={(color) => <CaretDown color={color} />}
+													title={`Actions for ${shortcut.action}`}
+													values={shortcutMenuItems}
+													variant={null}
+												/>
 											</span>
 										</>
 									)}

@@ -1845,27 +1845,14 @@ test.describe('visual mode', () => {
 			const fixedShortcutRow = dialog
 				.getByRole('listitem')
 				.filter({hasText: '1 second back'});
-			const fixedShortcutBox = await fixedShortcutRow
-				.locator('kbd')
-				.last()
-				.boundingBox();
-			const fixedLabelBox = await fixedShortcutRow
-				.getByText('Fixed', {exact: true})
-				.boundingBox();
-			if (fixedShortcutBox === null || fixedLabelBox === null) {
-				throw new Error('Expected shortcut and Fixed label to have boxes');
-			}
-
-			expect(
-				Math.abs(
-					fixedShortcutBox.y +
-						fixedShortcutBox.height / 2 -
-						(fixedLabelBox.y + fixedLabelBox.height / 2),
-				),
-			).toBeLessThan(1);
+			await expect(fixedShortcutRow.getByRole('button')).toHaveCount(0);
 			const playPauseShortcut = dialog.getByRole('button', {
 				name: 'Change shortcut for Play / Pause',
 			});
+			const playPauseActions = dialog.getByRole('button', {
+				name: 'Actions for Play / Pause',
+			});
+			await expect(playPauseActions).toBeVisible();
 			await playPauseShortcut.click();
 			await expect(playPauseShortcut).toContainText('Press shortcut');
 			await page.keyboard.press('q');
@@ -1873,10 +1860,11 @@ test.describe('visual mode', () => {
 				.poll(() => fs.readFileSync(configFile, 'utf8'))
 				.toContain('Config.setKeyboardShortcuts({');
 			await expect(playPauseShortcut).toContainText('Q');
-			await dialog.getByTitle('Reset to default', {exact: true}).click();
+			await playPauseActions.click();
+			await page.getByText('Reset to default', {exact: true}).click();
 			await expect
 				.poll(() => fs.readFileSync(configFile, 'utf8'))
-				.not.toContain('Config.setKeyboardShortcuts');
+				.not.toContain("'playPause'");
 			await expect(playPauseShortcut).toContainText('Space');
 			await dialog.getByRole('button', {name: 'Studio', exact: true}).click();
 
