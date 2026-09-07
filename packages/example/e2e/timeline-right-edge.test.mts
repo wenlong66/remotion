@@ -9,6 +9,23 @@ test('handles timeline layer edge geometry and interactions', async ({
 	await startStudio();
 	try {
 		const openInEditorRequests: unknown[] = [];
+		await page.route('**/api/default-editor-info', async (route) => {
+			await route.fulfill({
+				json: {
+					success: true,
+					data: {
+						defaultEditor: 'vscode',
+						installedEditors: [
+							{
+								id: 'vscode',
+								name: 'Code',
+								nameWithType: 'VS Code',
+							},
+						],
+					},
+				},
+			});
+		});
 		await page.route('**/api/open-in-editor', async (route) => {
 			openInEditorRequests.push(route.request().postDataJSON());
 			await route.fulfill({json: {success: true, data: {success: true}}});
