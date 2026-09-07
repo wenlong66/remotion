@@ -84,6 +84,10 @@ const cloudrunOnlyOptions = {
 		flag: '--quiet, -q',
 		description: 'Reduce console output.',
 	},
+	force: {
+		flag: '--force, -f',
+		description: 'Skip deletion confirmation prompts.',
+	},
 	yes: {
 		flag: '--yes, -y',
 		description: 'Skip deletion confirmation prompts.',
@@ -106,7 +110,11 @@ const options = (
 		const cloudrunOnlyOption =
 			cloudrunOnlyOptions[flag as keyof typeof cloudrunOnlyOptions];
 		if (cloudrunOnlyOption) {
-			return cloudrunOnlyOption;
+			return {
+				...cloudrunOnlyOption,
+				description:
+					descriptionOverrides[flag] ?? cloudrunOnlyOption.description,
+			};
 		}
 
 		const rendererOption = rendererOptions.find(
@@ -165,6 +173,8 @@ const renderOptions = options(
 		'gl',
 		'disable-headless',
 		'dark-mode',
+		'config',
+		'port',
 		'timeout',
 		'binaries-directory',
 		'muted',
@@ -177,7 +187,10 @@ const renderOptions = options(
 		'metadata',
 		'sample-rate',
 	],
-	{'image-format': 'Video Image Format'},
+	{
+		'image-format': 'Video Image Format',
+		port: 'Set the local server port when no composition ID is passed.',
+	},
 );
 
 const commandHelp = [
@@ -200,37 +213,44 @@ const commandHelp = [
 		args: ' <serve-url|site-name> [<still-id>] [<output-location>]',
 		description: 'Render a Remotion still on GCP Cloud Run.',
 		documentation: 'https://www.remotion.dev/docs/cloudrun/cli/still',
-		options: options([
-			'region',
-			'props',
-			'frame',
-			'privacy',
-			'force-bucket-name',
-			'height',
-			'width',
-			'fps',
-			'duration',
-			'jpeg-quality',
-			'image-format',
-			'scale',
-			'env-file',
-			'out-name',
-			'cloud-run-url',
-			'service-name',
-			'browser-executable',
-			'user-agent',
-			'disable-web-security',
-			'ignore-certificate-errors',
-			'enable-multiprocess-on-linux',
-			'gl',
-			'disable-headless',
-			'dark-mode',
-			'timeout',
-			'binaries-directory',
-			'quiet',
-			'media-cache-size-in-bytes',
-			'offthreadvideo-cache-size-in-bytes',
-		]),
+		options: options(
+			[
+				'region',
+				'props',
+				'frame',
+				'privacy',
+				'force-bucket-name',
+				'height',
+				'width',
+				'fps',
+				'duration',
+				'jpeg-quality',
+				'image-format',
+				'scale',
+				'env-file',
+				'out-name',
+				'cloud-run-url',
+				'service-name',
+				'browser-executable',
+				'user-agent',
+				'disable-web-security',
+				'ignore-certificate-errors',
+				'enable-multiprocess-on-linux',
+				'gl',
+				'disable-headless',
+				'dark-mode',
+				'config',
+				'port',
+				'timeout',
+				'binaries-directory',
+				'quiet',
+				'media-cache-size-in-bytes',
+				'offthreadvideo-cache-size-in-bytes',
+			],
+			{
+				port: 'Set the local server port when no composition ID is passed.',
+			},
+		),
 	},
 	{
 		path: [SERVICES_COMMAND],
@@ -267,14 +287,14 @@ const commandHelp = [
 		args: ' <service-name...>',
 		description: 'Delete one or more Cloud Run services.',
 		documentation: 'https://www.remotion.dev/docs/cloudrun/cli/services/rm',
-		options: options(['region', 'yes']),
+		options: options(['region', 'yes', 'force', 'quiet']),
 	},
 	{
 		path: [SERVICES_COMMAND, SERVICES_RMALL_SUBCOMMAND],
 		args: '',
 		description: 'Delete all Cloud Run services in the selected region.',
 		documentation: 'https://www.remotion.dev/docs/cloudrun/cli/services/rmall',
-		options: options(['region', 'yes']),
+		options: options(['region', 'yes', 'force', 'quiet']),
 	},
 	{
 		path: [SITES_COMMAND],
@@ -288,17 +308,23 @@ const commandHelp = [
 		args: ' <entry-point>?',
 		description: 'Bundle and upload a Remotion project.',
 		documentation: 'https://www.remotion.dev/docs/cloudrun/cli/sites/create',
-		options: options([
-			'region',
-			'site-name',
-			'privacy',
-			'disable-git-source',
-			'bundle-cache',
-			'rspack',
-			'disable-ask-ai',
-			'disable-keyboard-shortcuts',
-			'quiet',
-		]),
+		options: options(
+			[
+				'region',
+				'site-name',
+				'privacy',
+				'config',
+				'disable-git-source',
+				'bundle-cache',
+				'rspack',
+				'disable-ask-ai',
+				'disable-keyboard-shortcuts',
+				'quiet',
+			],
+			{
+				privacy: 'Set the privacy of the deployed site.',
+			},
+		),
 	},
 	{
 		path: [SITES_COMMAND, SITES_LS_SUBCOMMAND],
@@ -312,14 +338,14 @@ const commandHelp = [
 		args: ' <site-name...>',
 		description: 'Delete one or more deployed Remotion projects.',
 		documentation: 'https://www.remotion.dev/docs/cloudrun/cli/sites/rm',
-		options: options(['region', 'yes']),
+		options: options(['region', 'yes', 'force', 'quiet']),
 	},
 	{
 		path: [SITES_COMMAND, SITES_RMALL_COMMAND],
 		args: '',
 		description: 'Delete all deployed Remotion projects.',
 		documentation: 'https://www.remotion.dev/docs/cloudrun/cli/sites/rmall',
-		options: options(['region', 'all-regions', 'yes']),
+		options: options(['region', 'all-regions', 'yes', 'force']),
 	},
 	{
 		path: [PERMISSIONS_COMMAND],

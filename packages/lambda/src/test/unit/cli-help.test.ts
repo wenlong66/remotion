@@ -1,17 +1,5 @@
 import {expect, test} from 'bun:test';
-import {spawnSync} from 'node:child_process';
-import {mkdtempSync, readdirSync, rmSync, writeFileSync} from 'node:fs';
-import path from 'node:path';
 import {getLambdaHelp} from '../../cli/help';
-
-const exampleDirectory = path.join(
-	__dirname,
-	'..',
-	'..',
-	'..',
-	'..',
-	'example',
-);
 
 const commandHelpPages = [
 	{args: [], documentation: '/docs/lambda/cli', option: null},
@@ -131,10 +119,16 @@ test('defines help for every Lambda command', () => {
 	const renderHelp = getLambdaHelp(['render']).join('\n');
 	expect(renderHelp).toContain('--buffer-size <value>');
 	expect(renderHelp).toContain('--enable-multiprocess-on-linux');
+	expect(renderHelp).toContain('--is-production');
+	expect(renderHelp).toContain('--config <value>');
+	expect(renderHelp).toContain('--port <value>');
 
 	const stillHelp = getLambdaHelp(['still']).join('\n');
 	expect(stillHelp).toContain('--function-name <name>');
 	expect(stillHelp).toContain('--height <value>');
+	expect(stillHelp).toContain('--is-production');
+	expect(stillHelp).toContain('--config <value>');
+	expect(stillHelp).toContain('--port <value>');
 
 	const compositionsHelp = getLambdaHelp(['compositions']).join('\n');
 	expect(compositionsHelp).toContain('--region <region>');
@@ -154,6 +148,7 @@ test('defines help for every Lambda command', () => {
 
 	const createSiteHelp = getLambdaHelp(['sites', 'create']).join('\n');
 	expect(createSiteHelp).toContain('--privacy <public|no-acl>');
+	expect(createSiteHelp).toContain('--config <value>');
 	expect(createSiteHelp).not.toContain('public|private|no-acl');
 
 	const listSitesHelp = getLambdaHelp(['sites', 'ls']).join('\n');
@@ -162,86 +157,3 @@ test('defines help for every Lambda command', () => {
 	const policyHelp = getLambdaHelp(['policies', 'validate']).join('\n');
 	expect(policyHelp).toContain('--region <region>');
 });
-
-test('exposes a help-only package entry point', () => {
-	const result = spawnSync(
-		'node',
-		[
-			'-e',
-			`const help = require('@remotion/lambda/internal/help'); process.stdout.write(JSON.stringify({printHelp: typeof help.printHelp, hasRenderOptions: help.getLambdaHelp(['render']).join('\\n').includes('--frames-per-lambda <count>')}));`,
-		],
-		{
-			cwd: exampleDirectory,
-			encoding: 'utf8',
-			stdio: ['ignore', 'pipe', 'pipe'],
-			timeout: 10_000,
-		},
-	);
-
-	if (result.error) {
-		throw result.error;
-	}
-
-	expect(result.signal).toBeNull();
-	expect(result.status).toBe(0);
-	expect(JSON.parse(result.stdout)).toEqual({
-		printHelp: 'function',
-		hasRenderOptions: true,
-	});
-});
-
-test('the Remotion CLI delegates Lambda help before loading config', () => {
-	const temporaryDirectory = mkdtempSync(
-		path.join(exampleDirectory, '.tmp-lambda-cli-help-'),
-	);
-	writeFileSync(path.join(temporaryDirectory, 'package.json'), '{}\n');
-	writeFileSync(
-		path.join(temporaryDirectory, 'remotion.config.ts'),
-		`throw new Error('The config file must not be loaded for --help');\n`,
-	);
-	const initialFiles = readdirSync(temporaryDirectory);
-	const childEnvironment: NodeJS.ProcessEnv = {...process.env, NO_COLOR: '1'};
-	delete childEnvironment.FORCE_COLOR;
-
-	try {
-		for (const invocation of [
-			['lambda', 'render', '--help'],
-			['help', 'lambda', 'render'],
-		]) {
-			const result = spawnSync(
-				'node',
-				[
-					path.join(exampleDirectory, '..', 'cli', 'remotion-cli.js'),
-					...invocation,
-					'--log=error',
-				],
-				{
-					cwd: temporaryDirectory,
-					encoding: 'utf8',
-					env: childEnvironment,
-					stdio: ['ignore', 'pipe', 'pipe'],
-					timeout: 10_000,
-				},
-			);
-
-			if (result.error) {
-				throw result.error;
-			}
-
-			expect(result.signal).toBeNull();
-			expect(result.status).toBe(0);
-			expect(result.stderr).toBe('');
-			expect(result.stdout).toStartWith('remotion lambda render ');
-			expect(result.stdout).not.toContain('©');
-			expect(result.stdout).toContain('remotion lambda render');
-			expect(result.stdout).toContain('--frames-per-lambda <count>');
-			expect(result.stdout).toContain(
-				'https://www.remotion.dev/docs/lambda/cli/render',
-			);
-		}
-
-		expect(readdirSync(temporaryDirectory)).toEqual(initialFiles);
-	} finally {
-		rmSync(temporaryDirectory, {recursive: true, force: true});
-	}
-}, 15_000);

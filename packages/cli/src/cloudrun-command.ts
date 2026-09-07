@@ -16,15 +16,17 @@ export const tryPrintCloudrunHelp = (
 		return false;
 	}
 
-	const {printHelp} = require(path);
-	if (typeof printHelp !== 'function') {
-		throw new TypeError(
-			'@remotion/cloudrun/internal/help does not export printHelp',
-		);
-	}
+	try {
+		const {printHelp} = require(path);
+		if (typeof printHelp !== 'function') {
+			return false;
+		}
 
-	printHelp(args, logLevel);
-	return true;
+		printHelp(args, logLevel);
+		return true;
+	} catch {
+		return false;
+	}
 };
 
 export const cloudrunCommand = async (

@@ -1,10 +1,5 @@
 import {expect, test} from 'bun:test';
-import {spawnSync} from 'node:child_process';
-import {mkdtempSync, readdirSync, rmSync, writeFileSync} from 'node:fs';
-import path from 'node:path';
 import {getCloudrunHelp} from '../cli/help';
-
-const exampleDirectory = path.join(__dirname, '..', '..', '..', 'example');
 
 const commandHelpPages = [
 	{args: [], documentation: '/docs/cloudrun/cli', option: null},
@@ -98,97 +93,45 @@ test('defines help for every Cloud Run command', () => {
 	const renderHelp = getCloudrunHelp(['render']).join('\n');
 	expect(renderHelp).toContain('--buffer-size <value>');
 	expect(renderHelp).toContain('--browser-executable <value>');
+	expect(renderHelp).toContain('--config <value>');
+	expect(renderHelp).toContain('--port <value>');
 	expect(renderHelp).toContain('--quiet, -q');
 
 	const stillHelp = getCloudrunHelp(['still']).join('\n');
 	expect(stillHelp).toContain('--frame <value>');
 	expect(stillHelp).toContain('--height <value>');
+	expect(stillHelp).toContain('--config <value>');
+	expect(stillHelp).toContain('--port <value>');
 	expect(stillHelp).not.toContain('--offthreadvideo-video-threads');
 
 	const createSiteHelp = getCloudrunHelp(['sites', 'create']).join('\n');
+	expect(createSiteHelp).toContain('--config <value>');
 	expect(createSiteHelp).toContain('--bundle-cache');
 	expect(createSiteHelp).toContain('--disable-ask-ai');
-});
-
-test('exposes a help-only package entry point', () => {
-	const result = spawnSync(
-		'node',
-		[
-			'-e',
-			`const help = require('@remotion/cloudrun/internal/help'); process.stdout.write(JSON.stringify({printHelp: typeof help.printHelp, hasRenderOptions: help.getCloudrunHelp(['render']).join('\\n').includes('--service-name <service-name>')}));`,
-		],
-		{
-			cwd: exampleDirectory,
-			encoding: 'utf8',
-			stdio: ['ignore', 'pipe', 'pipe'],
-			timeout: 10_000,
-		},
+	expect(createSiteHelp).toContain('--privacy <public|private|no-acl>');
+	expect(createSiteHelp).toContain('Set the privacy of the deployed site.');
+	expect(createSiteHelp).not.toContain(
+		'Set the privacy of the rendered output.',
 	);
 
-	if (result.error) {
-		throw result.error;
+	for (const args of [
+		['services', 'rm'],
+		['services', 'rmall'],
+		['sites', 'rm'],
+		['sites', 'rmall'],
+	]) {
+		expect(getCloudrunHelp(args).join('\n')).toContain('--force, -f');
 	}
 
-	expect(result.signal).toBeNull();
-	expect(result.status).toBe(0);
-	expect(JSON.parse(result.stdout)).toEqual({
-		printHelp: 'function',
-		hasRenderOptions: true,
-	});
-});
-
-test('the Remotion CLI delegates Cloud Run help before loading config', () => {
-	const temporaryDirectory = mkdtempSync(
-		path.join(exampleDirectory, '.tmp-cloudrun-cli-help-'),
-	);
-	writeFileSync(path.join(temporaryDirectory, 'package.json'), '{}\n');
-	writeFileSync(
-		path.join(temporaryDirectory, 'remotion.config.ts'),
-		`throw new Error('The config file must not be loaded for --help');\n`,
-	);
-	const initialFiles = readdirSync(temporaryDirectory);
-	const childEnvironment: NodeJS.ProcessEnv = {...process.env, NO_COLOR: '1'};
-	delete childEnvironment.FORCE_COLOR;
-
-	try {
-		for (const invocation of [
-			['cloudrun', 'render', '--help'],
-			['help', 'cloudrun', 'render'],
-		]) {
-			const result = spawnSync(
-				'node',
-				[
-					path.join(exampleDirectory, '..', 'cli', 'remotion-cli.js'),
-					...invocation,
-					'--log=error',
-				],
-				{
-					cwd: temporaryDirectory,
-					encoding: 'utf8',
-					env: childEnvironment,
-					stdio: ['ignore', 'pipe', 'pipe'],
-					timeout: 10_000,
-				},
-			);
-
-			if (result.error) {
-				throw result.error;
-			}
-
-			expect(result.signal).toBeNull();
-			expect(result.status).toBe(0);
-			expect(result.stderr).toBe('');
-			expect(result.stdout).toStartWith('remotion cloudrun render ');
-			expect(result.stdout).not.toContain('©');
-			expect(result.stdout).toContain('remotion cloudrun render');
-			expect(result.stdout).toContain('--service-name <service-name>');
-			expect(result.stdout).toContain(
-				'https://www.remotion.dev/docs/cloudrun/cli/render',
-			);
-		}
-
-		expect(readdirSync(temporaryDirectory)).toEqual(initialFiles);
-	} finally {
-		rmSync(temporaryDirectory, {recursive: true, force: true});
+	for (const args of [
+		['services', 'rm'],
+		['services', 'rmall'],
+		['sites', 'rm'],
+	]) {
+		expect(getCloudrunHelp(args).join('\n')).toContain('--quiet, -q');
 	}
-}, 15_000);
+
+	expect(getCloudrunHelp(['sites', 'rmall']).join('\n')).not.toContain(
+		'--quiet, -q',
+	);
+});

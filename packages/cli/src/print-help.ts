@@ -74,6 +74,43 @@ const studioOptions = options([
 	'no-open',
 	'browser',
 	'browser-args',
+	'browser-executable',
+	'bundle-cache',
+	'chrome-mode',
+	'concurrency',
+	'image-format',
+	'jpeg-quality',
+	'pixel-format',
+	'scale',
+	'crf',
+	'prores-profile',
+	'x264-preset',
+	'gop',
+	'audio-bitrate',
+	'video-bitrate',
+	'audio-codec',
+	'buffer-size',
+	'max-rate',
+	'every-nth-frame',
+	'muted',
+	'enforce-audio-track',
+	'number-of-gif-loops',
+	'color-space',
+	'hardware-acceleration',
+	'timeout',
+	'ignore-certificate-errors',
+	'disable-web-security',
+	'disable-headless',
+	'dark-mode',
+	'gl',
+	'user-agent',
+	'media-cache-size-in-bytes',
+	'offthreadvideo-cache-size-in-bytes',
+	'offthreadvideo-video-threads',
+	'enable-multiprocess-on-linux',
+	'repro',
+	'sample-rate',
+	'for-seamless-aac-concatenation',
 	'beep-on-finish',
 	'ipv4',
 	'number-of-shared-audio-tags',
@@ -400,21 +437,21 @@ const commandHelp: readonly CommandHelpEntry[] = [
 		args: '',
 		description: 'Print and validate versions of all Remotion packages.',
 		documentation: 'https://www.remotion.dev/docs/cli/versions',
-		options: [],
+		options: options(['log']),
 	},
 	{
 		path: ['upgrade'],
 		args: '',
 		description: 'Ensure Remotion is on the newest version.',
 		documentation: 'https://www.remotion.dev/docs/cli/upgrade',
-		options: options(['package-manager', 'version', 'skip-skills']),
+		options: options(['package-manager', 'version', 'skip-skills', 'log']),
 	},
 	{
 		path: ['add'],
 		args: ' <package-name...>',
 		description: 'Add Remotion packages with the correct version.',
 		documentation: 'https://www.remotion.dev/docs/cli/add',
-		options: options(['package-manager']),
+		options: options(['package-manager', 'log']),
 	},
 	{
 		path: [GPU_COMMAND],
@@ -452,7 +489,7 @@ const commandHelp: readonly CommandHelpEntry[] = [
 	},
 	{
 		path: ['help'],
-		args: '',
+		args: ' <command...>',
 		description: 'Print available commands and flags for the Remotion CLI.',
 		documentation: 'https://www.remotion.dev/docs/cli/help',
 		options: [],
@@ -463,18 +500,21 @@ export const printHelp = (
 	logLevel: LogLevel,
 	selectedPath: readonly string[],
 ) => {
-	Log.info({indent: false, logLevel}, `@remotion/cli ${packagejson.version}`);
-	Log.info(
-		{indent: false, logLevel},
-		`© ${new Date().getFullYear()} Remotion AG`,
-	);
+	if (selectedPath.length === 0) {
+		Log.info({indent: false, logLevel}, `@remotion/cli ${packagejson.version}`);
+		Log.info(
+			{indent: false, logLevel},
+			`© ${new Date().getFullYear()} Remotion AG`,
+		);
+	}
 
-	for (const line of getCommandHelp({
+	const lines = getCommandHelp({
 		binaryName: 'remotion',
 		commands: commandHelp,
 		selectedPath,
 		rootDocumentation: 'https://www.remotion.dev/docs/cli',
-	})) {
+	});
+	for (const line of selectedPath.length === 0 ? lines : lines.slice(1)) {
 		Log.info({indent: false, logLevel}, line);
 	}
 };
