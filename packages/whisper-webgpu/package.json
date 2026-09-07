@@ -24,18 +24,16 @@
 		"url": "https://github.com/remotion-dev/remotion/issues"
 	},
 	"dependencies": {
-		"@remotion/captions": "workspace:*",
-		"onnxruntime-web": "1.26.0-dev.20260416-b7804b056c"
+		"@remotion/captions": "workspace:*"
+	},
+	"peerDependencies": {
+		"@huggingface/transformers": "4.2.0"
 	},
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
 			"module": "./dist/esm/index.mjs",
 			"import": "./dist/esm/index.mjs"
-		},
-		"./private-transformers": {
-			"module": "./dist/esm/private-transformers.mjs",
-			"import": "./dist/esm/private-transformers.mjs"
 		},
 		"./package.json": "./package.json"
 	},

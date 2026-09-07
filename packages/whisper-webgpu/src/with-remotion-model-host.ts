@@ -23,8 +23,8 @@ type ModelHostState = {
 export const withRemotionModelHost = async <ReturnValue>(
 	operation: (transformers: TransformersModule) => Promise<ReturnValue>,
 ): Promise<ReturnValue> => {
-	// bundle.ts puts this import into a private lazy chunk. This keeps the mutable
-	// Transformers.js environment isolated from other pipelines in the application.
+	// Transformers.js is an external peer so AI workflows in the same application
+	// can share one version. Keep Remotion's host override scoped to this operation.
 	const transformers = await import('@huggingface/transformers');
 	const {env} = transformers;
 	const environmentWithState = env as typeof env &
