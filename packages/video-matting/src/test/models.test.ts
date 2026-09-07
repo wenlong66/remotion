@@ -16,20 +16,18 @@ test('returns public metadata without mutable internal model settings', () => {
 			name: 'modnet',
 			modelId: 'Xenova/modnet',
 			purpose: 'person',
-			experimental: false,
 			webGpuDownloadSize: 25_889_088,
 		},
 		{
 			name: 'ben2-base',
 			modelId: 'onnx-community/BEN2-ONNX',
 			purpose: 'general',
-			experimental: true,
 			webGpuDownloadSize: 219_122_146,
 		},
 	]);
 
-	models[0].experimental = true;
-	expect(getAvailableVideoMattingModels()[0].experimental).toBe(false);
+	models[0].purpose = 'general';
+	expect(getAvailableVideoMattingModels()[0].purpose).toBe('person');
 });
 
 test('rejects unsupported runtime model values', () => {

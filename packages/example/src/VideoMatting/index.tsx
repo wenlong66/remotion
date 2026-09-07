@@ -24,9 +24,6 @@ export const VideoMatting = () => {
 	const [status, setStatus] = useState('Choose a video to separate.');
 	const [progress, setProgress] = useState<number | null>(null);
 	const [outputUrls, setOutputUrls] = useState<OutputUrls | null>(null);
-	const selectedModelInfo = models.find(
-		(model) => model.name === selectedModel,
-	);
 
 	useEffect(() => {
 		return () => {
@@ -157,7 +154,7 @@ export const VideoMatting = () => {
 					</label>
 				</div>
 
-				{selectedModelInfo?.experimental ? (
+				{selectedModel === 'ben2-base' ? (
 					<p className="rounded-md bg-amber-50 p-3 text-sm text-amber-900">
 						This model is experimental and requires WebGPU shader-f16 support.
 					</p>

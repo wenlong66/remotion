@@ -6,7 +6,6 @@ export type VideoMattingModelInfo = {
 	name: VideoMattingModel;
 	modelId: string;
 	purpose: 'person' | 'general';
-	experimental: boolean;
 	webGpuDownloadSize: number;
 };
 
@@ -21,7 +20,6 @@ const MODEL_INFO: Record<VideoMattingModel, InternalVideoMattingModelInfo> = {
 		name: 'modnet',
 		modelId: 'Xenova/modnet',
 		purpose: 'person',
-		experimental: false,
 		webGpuDownloadSize: 25_889_088,
 		revision: 'fa2fa546052fba4c08921230a26cc69a333fca12',
 		dtype: 'fp32',
@@ -31,7 +29,6 @@ const MODEL_INFO: Record<VideoMattingModel, InternalVideoMattingModelInfo> = {
 		name: 'ben2-base',
 		modelId: 'onnx-community/BEN2-ONNX',
 		purpose: 'general',
-		experimental: true,
 		webGpuDownloadSize: 219_122_146,
 		revision: 'c552aa82688edce09f0ac9d2e31ad53d9d629010',
 		dtype: 'fp16',
