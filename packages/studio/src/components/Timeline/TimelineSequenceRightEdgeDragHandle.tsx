@@ -19,7 +19,10 @@ import {calculateTimeline} from '../../helpers/calculate-timeline';
 import {StudioServerConnectionCtx} from '../../helpers/client-id';
 import {TRANSPARENT} from '../../helpers/colors';
 import type {SequenceNodePathInfo} from '../../helpers/get-timeline-sequence-sort-key';
-import {startCapturedPointerSession} from '../../helpers/pointer-session';
+import {
+	startCapturedPointerSession,
+	startDeferredCapturedPointerSession,
+} from '../../helpers/pointer-session';
 import {TIMELINE_PADDING} from '../../helpers/timeline-layout';
 import {EditorSnappingContext} from '../../state/editor-snapping';
 import {
@@ -89,6 +92,7 @@ const baseStyle: React.CSSProperties = {
 export type TimelineSequenceDurationDragTarget = {
 	readonly fileName: string;
 	readonly initialDuration: number;
+	readonly maximumDuration: number;
 	readonly minimumDuration: number;
 	readonly nodePath: SequencePropsSubscriptionKey;
 	readonly schema: InteractivitySchema;
@@ -406,12 +410,18 @@ const isFromDraggableSequence = (sequence: TSequence) => {
 export const getTimelineSequenceDurationDragValue = ({
 	initialDuration,
 	deltaFrames,
+	maximumDuration,
 	minimumDuration = 1,
 }: {
 	readonly initialDuration: number;
 	readonly deltaFrames: number;
+	readonly maximumDuration: number;
 	readonly minimumDuration?: number;
-}) => Math.max(minimumDuration, initialDuration + deltaFrames);
+}) =>
+	Math.min(
+		maximumDuration,
+		Math.max(minimumDuration, initialDuration + deltaFrames),
+	);
 
 export const getTimelineSequenceLeftEdgeDragDelta = ({
 	initialDuration,
@@ -531,6 +541,7 @@ export const getTimelineSequenceDurationDragChanges = ({
 		const nextValue = getTimelineSequenceDurationDragValue({
 			initialDuration: target.initialDuration,
 			deltaFrames,
+			maximumDuration: target.maximumDuration,
 			minimumDuration: target.minimumDuration,
 		});
 
@@ -725,12 +736,14 @@ export const getTimelineSequenceDurationDragTargets = ({
 	sequences,
 	overrideIdsToNodePaths,
 	propStatuses,
+	timelineDurationInFrames,
 }: {
 	readonly draggedNodePathInfo: SequenceNodePathInfo;
 	readonly selectedItems: readonly TimelineSelection[];
 	readonly sequences: TSequence[];
 	readonly overrideIdsToNodePaths: OverrideIdToNodePaths;
 	readonly propStatuses: PropStatuses;
+	readonly timelineDurationInFrames: number;
 }): TimelineSequenceDurationDragTarget[] | null => {
 	const draggedSelectionKey =
 		getTimelineSequenceSelectionKey(draggedNodePathInfo);
@@ -793,14 +806,19 @@ export const getTimelineSequenceDurationDragTargets = ({
 
 		const key = stringifySequenceSubscriptionKey(nodePath);
 		if (!targets.has(key)) {
+			const minimumDuration = Math.max(
+				1 - originalSequence.from,
+				getMinimumSequenceDuration({sequence: originalSequence, sequences}),
+			);
 			targets.set(key, {
 				fileName: nodePath.absolutePath,
 				initialDuration: originalSequence.duration,
-				// A negative start needs enough duration to retain one visible frame.
-				minimumDuration: Math.max(
-					1 - originalSequence.from,
-					getMinimumSequenceDuration({sequence: originalSequence, sequences}),
+				maximumDuration: Math.max(
+					minimumDuration,
+					timelineDurationInFrames - track.cascadedStart,
 				),
+				// A negative start needs enough duration to retain one visible frame.
+				minimumDuration,
 				nodePath,
 				schema: controls.schema,
 			});
@@ -1620,12 +1638,10 @@ export const useTimelineSequenceFromDrag = ({
 			document.body.style.webkitUserSelect = 'none';
 			// Register before React commits so no pointer move can arrive before
 			// the global session listeners exist.
-			stopPointerSessionRef.current = startCapturedPointerSession({
+			stopPointerSessionRef.current = startDeferredCapturedPointerSession({
 				event: e.nativeEvent,
-				// The bar is removed when it leaves the visible timeline. Capture on
-				// a stable element so the move continues until the pointer is released.
 				captureTarget: e.currentTarget.ownerDocument.body,
-				onMove: (moveEvent) => {
+				onMove: (moveEvent, capturePointer) => {
 					const dragState = dragStateRef.current;
 					if (!dragState) {
 						return;
@@ -1641,6 +1657,10 @@ export const useTimelineSequenceFromDrag = ({
 					});
 					dragState.latestDeltaFrames = deltaFrames;
 					if (deltaFrames !== 0) {
+						// The bar can be removed when it leaves the visible timeline.
+						// Capture only after a real drag starts so clicks and double-clicks
+						// remain targeted at the bar.
+						capturePointer();
 						dragState.didMove = true;
 					}
 
@@ -1886,6 +1906,7 @@ const TimelineSequenceRightEdgeDragHandleInner: React.FC<{
 						sequences: sequencesRef.current,
 						overrideIdsToNodePaths: latestOverrideIdsToNodePaths,
 						propStatuses: propStatusesRef.current,
+						timelineDurationInFrames,
 					}) ?? [])
 				: [];
 
@@ -1930,6 +1951,7 @@ const TimelineSequenceRightEdgeDragHandleInner: React.FC<{
 							getTimelineSequenceDurationDragValue({
 								initialDuration: target.initialDuration,
 								deltaFrames,
+								maximumDuration: target.maximumDuration,
 								minimumDuration: target.minimumDuration,
 							}),
 						),

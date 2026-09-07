@@ -8,8 +8,8 @@ import {Internals, useCurrentFrame} from 'remotion';
 import {StudioServerConnectionCtx} from '../../helpers/client-id';
 import {
 	BLUE,
-	TIMELINE_BACKGROUND_COLOR,
 	TIMELINE_AUDIO_GRADIENT,
+	TIMELINE_BACKGROUND_COLOR,
 	TIMELINE_NEGATIVE_START_BACKGROUND_COLOR,
 	TIMELINE_NEGATIVE_START_BORDER_COLOR,
 	TIMELINE_VIDEO_GRADIENT,
@@ -190,8 +190,8 @@ const TimelineSequenceCurrentFrame: React.FC<{
 	readonly onMoveDragPointerDown: (
 		e: React.PointerEvent<HTMLDivElement>,
 	) => void;
-	readonly onPointerDownCapture: () => void;
-	readonly onDoubleClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+	readonly onPointerDownCapture: React.PointerEventHandler<HTMLDivElement>;
+	readonly onClick: React.MouseEventHandler<HTMLDivElement> | null;
 }> = ({
 	s,
 	displayDurationInFrames,
@@ -209,7 +209,7 @@ const TimelineSequenceCurrentFrame: React.FC<{
 	frozenFrame,
 	onMoveDragPointerDown,
 	onPointerDownCapture,
-	onDoubleClick,
+	onClick,
 }) => {
 	const ref = useRef<HTMLDivElement>(null);
 	const {onSelect, selectable, selected, selectionItem} =
@@ -344,7 +344,7 @@ const TimelineSequenceCurrentFrame: React.FC<{
 			title={s.displayName}
 			onPointerDownCapture={onPointerDownCapture}
 			onPointerDown={selectable ? onPointerDown : undefined}
-			onDoubleClick={onDoubleClick}
+			onClick={onClick ?? undefined}
 		>
 			{negativeStart ? (
 				<>
@@ -534,7 +534,7 @@ const TimelineSequenceInner: React.FC<{
 			item.type === 'sequence' ? [item.nodePathInfo] : [],
 		);
 	}, [selected, selectedItems]);
-	const onSequenceDoubleClick = useCallback(
+	const performSequenceDoubleClick = useCallback(
 		(e: React.MouseEvent<HTMLDivElement>) => {
 			if (isTimelineSelectionModifierEvent(e)) {
 				e.stopPropagation();
@@ -578,6 +578,16 @@ const TimelineSequenceInner: React.FC<{
 			selectComposition,
 			sequenceFrameOffset,
 		],
+	);
+	const onSequenceClick = useCallback(
+		(e: React.MouseEvent<HTMLDivElement>) => {
+			if (!dragAwareDoubleClick.acceptClickAsDoubleClick(e)) {
+				return;
+			}
+
+			performSequenceDoubleClick(e);
+		},
+		[dragAwareDoubleClick, performSequenceDoubleClick],
 	);
 	const canHandleSequenceDoubleClick =
 		connectedCompositions.length === 1 || canOpenInEditor;
@@ -971,6 +981,7 @@ const TimelineSequenceInner: React.FC<{
 			frozenFrame={frozenFrame}
 			onMoveDragPointerDown={onMoveDragPointerDown}
 			onPointerDownCapture={dragAwareDoubleClick.beginPointerGesture}
+			onClick={canHandleSequenceDoubleClick ? onSequenceClick : null}
 			edgeDragHandles={
 				<>
 					{showLeftEdgeDragHandle &&
@@ -1001,9 +1012,6 @@ const TimelineSequenceInner: React.FC<{
 						/>
 					) : null}
 				</>
-			}
-			onDoubleClick={
-				canHandleSequenceDoubleClick ? onSequenceDoubleClick : undefined
 			}
 		>
 			{s.type === 'audio' && visibleLayout.media ? (

@@ -341,7 +341,7 @@ Use `npx remotion add` to add new packages with the right version:
 npx remotion add @remotion/media
 ```
 
-This goes for `@remotion/*` packages, `mediabunny`, `@mediabunny/*`, and `zod`.
+This goes for `@remotion/*` packages, `mediabunny`, `@mediabunny/*`, `zod`, and `@huggingface/transformers`.
 
 ## Previewing markup
 

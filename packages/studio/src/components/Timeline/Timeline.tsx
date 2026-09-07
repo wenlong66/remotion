@@ -40,10 +40,6 @@ import {shouldSubscribeToSequenceProps} from './should-subscribe-to-sequence-pro
 import {SubscribeToNodePaths} from './SubscribeToNodePaths';
 import {TimelineAssetDropFrameContext} from './timeline-asset-drop-context';
 import {timelineVerticalScroll} from './timeline-refs';
-import {
-	EDGE_SCROLL_VERTICAL_INCREMENT,
-	startTimelineEdgeAutoScroll,
-} from './timeline-scroll-logic';
 import {TimelineDragHandler} from './TimelineDragHandler';
 import {TimelineHeightContainer} from './TimelineHeightContainer';
 import {TimelineInOutDragHandler} from './TimelineInOutDragHandler';
@@ -62,11 +58,9 @@ import {
 	TimelineSelectAllKeybindings,
 	useTimelineSelection,
 } from './TimelineSelection';
-import {SEQUENCE_REORDER_MIME_TYPE} from './TimelineSequenceItem';
 import {TimelineSlider} from './TimelineSlider';
 import {TimelineTickFormatProvider} from './TimelineTickFormatProvider';
 import {
-	TIMELINE_TIME_INDICATOR_HEIGHT,
 	TimelineTimeIndicators,
 	TimelineTimePlaceholders,
 } from './TimelineTimeIndicators';
@@ -97,7 +91,6 @@ const TimelineContextMenuArea: React.FC<{
 		Internals.CompositionManager,
 	);
 	const videoConfig = Internals.useUnsafeVideoConfig();
-	const isStill = useIsStill();
 	const [isAddingSolid, setIsAddingSolid] = useState(false);
 	const [isAddingAsset, setIsAddingAsset] = useState(false);
 	const {previewServerState} = useContext(StudioServerConnectionCtx);
@@ -105,56 +98,6 @@ const TimelineContextMenuArea: React.FC<{
 	const previewInteractive = previewConnected && isStudioInteractivityEnabled();
 	const browserStudioOperations = getBrowserStudioOperations();
 	const browserStudioCanInsertSolid = browserStudioOperations !== null;
-
-	useEffect(() => {
-		const verticalScroll = timelineVerticalScroll.current;
-		if (!verticalScroll) {
-			return;
-		}
-
-		const autoScroll = startTimelineEdgeAutoScroll({
-			includeHorizontal: false,
-			includeVertical: true,
-			verticalTopOffset: isStill ? 0 : TIMELINE_TIME_INDICATOR_HEIGHT,
-			onTick: (directions) => {
-				if (directions.y === null) {
-					return;
-				}
-
-				verticalScroll.scrollTop +=
-					directions.y === 'up'
-						? -EDGE_SCROLL_VERTICAL_INCREMENT
-						: EDGE_SCROLL_VERTICAL_INCREMENT;
-			},
-		});
-
-		const onDragOver = (event: DragEvent) => {
-			if (
-				!event.dataTransfer ||
-				!Array.from(event.dataTransfer.types).includes(
-					SEQUENCE_REORDER_MIME_TYPE,
-				)
-			) {
-				autoScroll.stop();
-				return;
-			}
-
-			autoScroll.update(event);
-		};
-
-		const stopAutoScroll = () => autoScroll.stop();
-
-		verticalScroll.addEventListener('dragover', onDragOver, true);
-		document.addEventListener('dragend', stopAutoScroll, true);
-		document.addEventListener('drop', stopAutoScroll, true);
-
-		return () => {
-			autoScroll.stop();
-			verticalScroll.removeEventListener('dragover', onDragOver, true);
-			document.removeEventListener('dragend', stopAutoScroll, true);
-			document.removeEventListener('drop', stopAutoScroll, true);
-		};
-	}, [isStill]);
 
 	const currentCompositionId =
 		canvasContent?.type === 'composition' ? canvasContent.compositionId : null;
@@ -510,6 +453,7 @@ const TimelineInner: React.FC = () => {
 						schema={sequence.controls.schema}
 						getStack={sequence.getStack}
 						effects={sequence.effects}
+						videoConfigValues={sequence.controls.videoConfigValues}
 					/>
 				);
 			})}

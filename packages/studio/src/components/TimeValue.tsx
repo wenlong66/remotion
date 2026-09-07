@@ -129,12 +129,11 @@ export const TimeValue: React.FC = () => {
 
 	useEffect(() => {
 		const gKey = keybindings.registerKeybinding({
-			event: 'keypress',
-			key: 'g',
+			event: 'keydown',
+			action: 'goToFrame',
 			callback: () => {
 				ref.current?.click();
 			},
-			commandCtrlKey: false,
 			preventDefault: true,
 			triggerIfInputFieldFocused: false,
 			keepRegisteredWhenNotHighestContext: false,

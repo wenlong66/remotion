@@ -7257,7 +7257,7 @@ export const articles = [
 	},
 	{
 		id: 'studio/shortcuts',
-		title: 'Keyboard navigation',
+		title: 'Keyboard shortcuts',
 		relativePath: 'docs/studio/shortcuts.mdx',
 		compId: 'articles-docs-studio-shortcuts',
 		crumb: 'Remotion Studio',

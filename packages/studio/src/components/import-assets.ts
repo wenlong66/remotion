@@ -701,14 +701,6 @@ const insertCompositionElement = async ({
 		return false;
 	}
 
-	if (result.insertedNodePath !== null) {
-		requestInsertedElementSelection({
-			compositionId,
-			nodePath: result.insertedNodePath,
-			notification: null,
-		});
-	}
-
 	return true;
 };
 

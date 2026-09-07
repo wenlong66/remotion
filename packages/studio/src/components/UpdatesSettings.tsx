@@ -5,14 +5,15 @@ import type {
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
 	BACKGROUND,
-	BORDER_WHITE_ALPHA_12,
 	BLUE,
+	BORDER_WHITE_ALPHA_12,
 	LIGHT_TEXT,
 	SELECTED_BACKGROUND,
 	WHITE,
 } from '../helpers/colors';
 import {copyText} from '../helpers/copy-text';
-import {ClipboardIcon} from '../icons/clipboard';
+import {useCopyFeedback} from '../helpers/use-copy-feedback';
+import {CopyIcon} from '../icons/copy';
 import type {RenderInlineAction} from './InlineAction';
 import {InlineAction} from './InlineAction';
 import {KnownBugs} from './KnownBugs';
@@ -292,20 +293,26 @@ export const UpdatesSettings: React.FC = () => {
 	const updateActionType = remotionSkillsInfo?.remotionUpgradeSkillAvailable
 		? 'skill'
 		: 'command';
+	const {copied, markCopied} = useCopyFeedback();
 
 	const onClick = useCallback(() => {
 		if (updateAction === null) {
 			return;
 		}
 
-		copyText(updateAction).catch((err) => {
-			showNotification('Could not copy: ' + err.message, 2000);
-		});
-	}, [updateAction]);
+		copyText(updateAction)
+			.then(markCopied)
+			.catch((err) => {
+				showNotification('Could not copy: ' + err.message, 2000);
+			});
+	}, [markCopied, updateAction]);
 
-	const renderCopyAction: RenderInlineAction = useCallback((color) => {
-		return <ClipboardIcon color={color} style={copyIcon} />;
-	}, []);
+	const renderCopyAction: RenderInlineAction = useCallback(
+		(color) => {
+			return <CopyIcon copied={copied} color={color} style={copyIcon} />;
+		},
+		[copied],
+	);
 
 	const onUpgrade = useCallback(() => {
 		if (info) {
