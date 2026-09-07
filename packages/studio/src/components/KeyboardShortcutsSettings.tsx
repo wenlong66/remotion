@@ -54,8 +54,9 @@ const shortcutSectionTitle: React.CSSProperties = {
 const shortcutRow: React.CSSProperties = {
 	alignItems: 'center',
 	borderBottom: BORDER_WHITE_ALPHA_12,
+	columnGap: 2,
 	display: 'grid',
-	gridTemplateColumns: 'minmax(0, 1fr) minmax(76px, max-content) 24px',
+	gridTemplateColumns: 'minmax(0, 1fr) minmax(76px, max-content) 14px',
 	margin: '0 16px',
 	minHeight: 42,
 };
@@ -437,7 +438,7 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 													renderAction={(color) => <CaretDown color={color} />}
 													title={`Actions for ${shortcut.action}`}
 													values={shortcutMenuItems}
-													variant={null}
+													variant="compact"
 												/>
 											</span>
 										</>
