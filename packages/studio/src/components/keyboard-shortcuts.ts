@@ -56,7 +56,7 @@ export const defaultKeyboardShortcuts: Record<
 	setInPoint: [{key: 'i'}],
 	setOutPoint: [{key: 'o'}],
 	clearInOutPoints: [{key: 'x'}],
-	zoomIn: [{key: '+', shift: true}],
+	zoomIn: [{key: '+', shift: true}, {key: '+'}],
 	zoomOut: [{key: '-'}],
 	resetZoom: [{key: '0'}],
 	undo: [{key: 'z', commandOrControl: true}],

@@ -28,6 +28,13 @@ test('includes the platform redo shortcuts', () => {
 	);
 });
 
+test('includes main-row and numeric-keypad zoom-in shortcuts', () => {
+	expect(defaultKeyboardShortcuts.zoomIn).toEqual([
+		{key: '+', shift: true},
+		{key: '+'},
+	]);
+});
+
 test('matches all shortcut modifiers exactly', () => {
 	expect(
 		keyboardEventMatchesShortcut({
