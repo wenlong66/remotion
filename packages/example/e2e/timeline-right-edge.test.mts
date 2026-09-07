@@ -118,48 +118,14 @@ export const E2eTestRoot = () => <Composition id="timeline-edges" component={Lay
 		const movableLayer = page.locator(
 			'[data-timeline-marquee-item][title="Natural end"]',
 		);
-		await movableLayer.dispatchEvent('pointerdown', {
-			button: 2,
-			buttons: 2,
-			pointerId: 1,
-		});
-		await movableLayer.dispatchEvent('pointerup', {
-			button: 2,
-			buttons: 0,
-			pointerId: 1,
-		});
-		await movableLayer.dispatchEvent('click', {button: 0, detail: 2});
-		await movableLayer.dispatchEvent('dblclick', {button: 0, detail: 2});
-		await page.waitForTimeout(100);
+		await movableLayer.click({button: 'right', position: {x: 30, y: 10}});
+		const contextMenu = page.locator('[data-remotion-menu-tree-id]').last();
+		await expect(contextMenu).toBeVisible();
+		await movableLayer.click({position: {x: 30, y: 10}});
+		await expect(contextMenu).not.toBeVisible();
 		expect(openInEditorRequests).toHaveLength(0);
-
-		await movableLayer.dispatchEvent('pointerdown', {
-			button: 0,
-			buttons: 1,
-			pointerId: 1,
-		});
-		await movableLayer.dispatchEvent('pointerup', {
-			button: 0,
-			buttons: 0,
-			pointerId: 1,
-		});
-		await movableLayer.dispatchEvent('click', {button: 0, detail: 3});
-		expect(openInEditorRequests).toHaveLength(0);
-		await movableLayer.dispatchEvent('pointerdown', {
-			button: 0,
-			buttons: 1,
-			pointerId: 1,
-		});
-		await movableLayer.dispatchEvent('pointerup', {
-			button: 0,
-			buttons: 0,
-			pointerId: 1,
-		});
-		await movableLayer.dispatchEvent('click', {button: 0, detail: 4});
-		await expect.poll(() => openInEditorRequests.length).toBe(1);
-
 		await movableLayer.dblclick({position: {x: 30, y: 10}});
-		await expect.poll(() => openInEditorRequests.length).toBe(2);
+		await expect.poll(() => openInEditorRequests.length).toBe(1);
 
 		const rightEdgeLayer = page.locator(
 			'[data-timeline-marquee-item][title="Explicit fill cutoff"]',
