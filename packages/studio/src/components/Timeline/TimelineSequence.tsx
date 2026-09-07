@@ -8,8 +8,8 @@ import {Internals, useCurrentFrame} from 'remotion';
 import {StudioServerConnectionCtx} from '../../helpers/client-id';
 import {
 	BLUE,
-	TIMELINE_BACKGROUND_COLOR,
 	TIMELINE_AUDIO_GRADIENT,
+	TIMELINE_BACKGROUND_COLOR,
 	TIMELINE_NEGATIVE_START_BACKGROUND_COLOR,
 	TIMELINE_NEGATIVE_START_BORDER_COLOR,
 	TIMELINE_VIDEO_GRADIENT,
@@ -192,7 +192,6 @@ const TimelineSequenceCurrentFrame: React.FC<{
 	) => void;
 	readonly onPointerDownCapture: React.PointerEventHandler<HTMLDivElement>;
 	readonly onClick: React.MouseEventHandler<HTMLDivElement> | null;
-	readonly onDoubleClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }> = ({
 	s,
 	displayDurationInFrames,
@@ -211,7 +210,6 @@ const TimelineSequenceCurrentFrame: React.FC<{
 	onMoveDragPointerDown,
 	onPointerDownCapture,
 	onClick,
-	onDoubleClick,
 }) => {
 	const ref = useRef<HTMLDivElement>(null);
 	const {onSelect, selectable, selected, selectionItem} =
@@ -347,7 +345,6 @@ const TimelineSequenceCurrentFrame: React.FC<{
 			onPointerDownCapture={onPointerDownCapture}
 			onPointerDown={selectable ? onPointerDown : undefined}
 			onClick={onClick ?? undefined}
-			onDoubleClick={onDoubleClick}
 		>
 			{negativeStart ? (
 				<>
@@ -584,17 +581,7 @@ const TimelineSequenceInner: React.FC<{
 	);
 	const onSequenceClick = useCallback(
 		(e: React.MouseEvent<HTMLDivElement>) => {
-			if (!dragAwareDoubleClick.recoverDoubleClick(e.detail)) {
-				return;
-			}
-
-			performSequenceDoubleClick(e);
-		},
-		[dragAwareDoubleClick, performSequenceDoubleClick],
-	);
-	const onSequenceDoubleClick = useCallback(
-		(e: React.MouseEvent<HTMLDivElement>) => {
-			if (!dragAwareDoubleClick.acceptDoubleClick()) {
+			if (!dragAwareDoubleClick.acceptClickAsDoubleClick(e.detail)) {
 				return;
 			}
 
@@ -1025,9 +1012,6 @@ const TimelineSequenceInner: React.FC<{
 						/>
 					) : null}
 				</>
-			}
-			onDoubleClick={
-				canHandleSequenceDoubleClick ? onSequenceDoubleClick : undefined
 			}
 		>
 			{s.type === 'audio' && visibleLayout.media ? (

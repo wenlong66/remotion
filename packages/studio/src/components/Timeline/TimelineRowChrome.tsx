@@ -169,17 +169,7 @@ export const TimelineRowChrome: React.FC<{
 	);
 	const onClick = useCallback(
 		(e: React.MouseEvent<HTMLDivElement>) => {
-			if (!doubleClickTracker.recoverDoubleClick(e.detail)) {
-				return;
-			}
-
-			performDoubleClickIfNotInteractive(e);
-		},
-		[doubleClickTracker, performDoubleClickIfNotInteractive],
-	);
-	const onDoubleClickIfNotInteractive = useCallback(
-		(e: React.MouseEvent<HTMLDivElement>) => {
-			if (!doubleClickTracker.acceptDoubleClick()) {
+			if (!doubleClickTracker.acceptClickAsDoubleClick(e.detail)) {
 				return;
 			}
 
@@ -258,7 +248,6 @@ export const TimelineRowChrome: React.FC<{
 				onPointerDown={selectable ? onPointerDown : undefined}
 				onClick={onClick}
 				onContextMenu={selectable ? onContextMenu : undefined}
-				onDoubleClick={onDoubleClickIfNotInteractive}
 				onPointerEnter={onPointerEnter}
 				onPointerLeave={onPointerLeave}
 			>
@@ -276,7 +265,6 @@ export const TimelineRowChrome: React.FC<{
 			onPointerDown={selectable ? onPointerDown : undefined}
 			onClick={onClick}
 			onContextMenu={selectable ? onContextMenu : undefined}
-			onDoubleClick={onDoubleClickIfNotInteractive}
 			onPointerEnter={onPointerEnter}
 			onPointerLeave={onPointerLeave}
 			style={innerRowStyle}

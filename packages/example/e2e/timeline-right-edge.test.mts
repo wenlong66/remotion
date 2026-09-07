@@ -1,5 +1,5 @@
-import fs from 'fs';
 import {expect, test} from '@playwright/test';
+import fs from 'fs';
 import {rootFile, STUDIO_URL} from './constants.mts';
 import {startStudio, stopStudio} from './studio-server.mts';
 
@@ -128,6 +128,7 @@ export const E2eTestRoot = () => <Composition id="timeline-edges" component={Lay
 			buttons: 0,
 			pointerId: 1,
 		});
+		await movableLayer.dispatchEvent('click', {button: 0, detail: 2});
 		await movableLayer.dispatchEvent('dblclick', {button: 0, detail: 2});
 		await page.waitForTimeout(100);
 		expect(openInEditorRequests).toHaveLength(0);

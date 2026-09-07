@@ -16,26 +16,26 @@ test('Drag-aware double clicks consume the drag from the current pointer gesture
 	expect(tracker.consumePointerGestureWasDragged()).toBe(false);
 });
 
-test('Double clicks require two primary-button pointer gestures', () => {
+test('Double clicks require an even click count and two primary-button pointer gestures', () => {
 	const tracker = createDragAwareDoubleClickTracker();
 
 	tracker.beginPointerGesture({button: 2});
 	tracker.beginPointerGesture({button: 0});
-	expect(tracker.acceptDoubleClick()).toBe(false);
+	expect(tracker.acceptClickAsDoubleClick(2)).toBe(false);
 
 	tracker.beginPointerGesture({button: 0});
-	expect(tracker.acceptDoubleClick()).toBe(true);
+	expect(tracker.acceptClickAsDoubleClick(1)).toBe(false);
+	expect(tracker.acceptClickAsDoubleClick(2)).toBe(true);
 });
 
-test('A rejected mixed-button double click can recover within the same click succession', () => {
+test('A mixed-button click succession can recover on the next primary double click', () => {
 	const tracker = createDragAwareDoubleClickTracker();
 
 	tracker.beginPointerGesture({button: 2});
-	expect(tracker.acceptDoubleClick()).toBe(false);
+	expect(tracker.acceptClickAsDoubleClick(2)).toBe(false);
 
 	tracker.beginPointerGesture({button: 0});
-	expect(tracker.recoverDoubleClick(3)).toBe(false);
+	expect(tracker.acceptClickAsDoubleClick(3)).toBe(false);
 	tracker.beginPointerGesture({button: 0});
-	expect(tracker.recoverDoubleClick(4)).toBe(true);
-	expect(tracker.recoverDoubleClick(4)).toBe(false);
+	expect(tracker.acceptClickAsDoubleClick(4)).toBe(true);
 });
