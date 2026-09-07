@@ -319,6 +319,7 @@ import {
 } from './VisualModeTests/InteractiveComponents';
 import {Issue9170} from './VisualModeTests/Issue9170';
 import {OutlineSelectionCases} from './VisualModeTests/OutlineSelectionCases';
+import {SequenceDurationInterpolation} from './VisualModeTests/SequenceDurationInterpolation';
 import {SequenceShiftRepro} from './VisualModeTests/SequenceShiftRepro';
 import {SvgPaintSchema} from './VisualModeTests/SvgPaintSchema';
 import {VideoConfigExpressions} from './VisualModeTests/VideoConfigExpressions';
@@ -3096,6 +3097,14 @@ export const Index: React.FC = () => {
 				<Composition
 					id="issue-9170-duration-subtraction"
 					component={Issue9170}
+					width={1200}
+					height={800}
+					fps={30}
+					durationInFrames={120}
+				/>
+				<Composition
+					id="sequence-duration-interpolation"
+					component={SequenceDurationInterpolation}
 					width={1200}
 					height={800}
 					fps={30}

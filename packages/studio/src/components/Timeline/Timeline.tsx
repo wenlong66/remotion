@@ -510,6 +510,7 @@ const TimelineInner: React.FC = () => {
 						schema={sequence.controls.schema}
 						getStack={sequence.getStack}
 						effects={sequence.effects}
+						videoConfigValues={sequence.controls.videoConfigValues}
 					/>
 				);
 			})}
