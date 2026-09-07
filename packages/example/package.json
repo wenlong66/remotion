@@ -31,7 +31,6 @@
 		"render-transparent": "remotion render --image-format=png --pixel-format=yuva420p --codec=vp8 react-svg out/video.webm"
 	},
 	"dependencies": {
-		"@huggingface/transformers": "catalog:",
 		"@remotion/studio-protocol": "workspace:*",
 		"@mdx-js/loader": "2.3.0",
 		"@mdx-js/react": "2.3.0",

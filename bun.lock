@@ -780,7 +780,6 @@
       "name": "@remotion/example",
       "version": "4.0.522",
       "dependencies": {
-        "@huggingface/transformers": "catalog:",
         "@mdx-js/loader": "2.3.0",
         "@mdx-js/react": "2.3.0",
         "@mediabunny/ac3": "catalog:",
