@@ -54,7 +54,7 @@ const shortcutSectionTitle: React.CSSProperties = {
 const shortcutRow: React.CSSProperties = {
 	alignItems: 'center',
 	borderBottom: BORDER_WHITE_ALPHA_12,
-	columnGap: 2,
+	columnGap: 4,
 	display: 'grid',
 	gridTemplateColumns: 'minmax(0, 1fr) minmax(76px, max-content) 14px',
 	margin: '0 16px',
