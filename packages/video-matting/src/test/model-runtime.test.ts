@@ -182,66 +182,6 @@ beforeEach(async () => {
 	Object.assign(transformersEnvironment, originalTransformersEnvironment);
 });
 
-test('removes only legacy pinned Hugging Face models from the shared browser cache', async () => {
-	const originalCaches = Object.getOwnPropertyDescriptor(globalThis, 'caches');
-	const cacheEnvironment =
-		transformersEnvironment as typeof transformersEnvironment & {
-			cacheKey: string;
-		};
-	cacheEnvironment.cacheKey = 'custom-transformers-cache';
-	const legacyModnet = new Request(
-		'https://huggingface.co/Xenova/modnet/resolve/fa2fa546052fba4c08921230a26cc69a333fca12/config.json',
-	);
-	const legacyBen2 = new Request(
-		'https://huggingface.co/onnx-community/BEN2-ONNX/resolve/c552aa82688edce09f0ac9d2e31ad53d9d629010/onnx/model_fp16.onnx',
-	);
-	const sameModelDifferentRevision = new Request(
-		'https://huggingface.co/Xenova/modnet/resolve/main/config.json',
-	);
-	const currentHostedModel = new Request(
-		'https://remotion.media/models/modnet-v1/config.json',
-	);
-	const unrelatedModel = new Request(
-		'https://huggingface.co/onnx-community/background-removal/resolve/main/config.json',
-	);
-	const deleted: string[] = [];
-	Object.defineProperty(globalThis, 'caches', {
-		configurable: true,
-		value: {
-			open: (cacheKey: string) => {
-				expect(cacheKey).toBe('custom-transformers-cache');
-				return Promise.resolve({
-					delete: (request: Request) => {
-						deleted.push(request.url);
-						return Promise.resolve(true);
-					},
-					keys: () =>
-						Promise.resolve([
-							legacyModnet,
-							legacyBen2,
-							sameModelDifferentRevision,
-							currentHostedModel,
-							unrelatedModel,
-						]),
-				});
-			},
-		} as unknown as CacheStorage,
-	});
-
-	try {
-		const {clearStaleVideoMattingModels} = await import('../index');
-		await clearStaleVideoMattingModels();
-		expect(deleted).toEqual([legacyModnet.url, legacyBen2.url]);
-	} finally {
-		Reflect.deleteProperty(cacheEnvironment, 'cacheKey');
-		if (originalCaches) {
-			Object.defineProperty(globalThis, 'caches', originalCaches);
-		} else {
-			Reflect.deleteProperty(globalThis, 'caches');
-		}
-	}
-});
-
 test('coalesces initialization and defers disposal until active work is done', async () => {
 	const {
 		disposeVideoMattingModel,

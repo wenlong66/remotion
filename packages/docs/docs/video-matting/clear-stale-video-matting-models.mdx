@@ -8,11 +8,9 @@ crumb: '@remotion/video-matting'
 
 Removes cached model files that are no longer returned by [`getAvailableVideoMattingModels()`](/docs/video-matting/get-available-video-matting-models).
 
-It also removes legacy entries for the pinned Hugging Face revisions that were used before models moved to `remotion.media`.
+There are no stale models in the current version, so the function resolves without changing the cache.
 
 Call this function after upgrading `@remotion/video-matting` to remove files for models discontinued by a newer version.
-
-Only known legacy video-matting entries are removed. Current files from `remotion.media` and cache entries used by unrelated Transformers.js workflows are preserved.
 
 ```ts twoslash title="clear-stale-models.ts"
 import {clearStaleVideoMattingModels} from '@remotion/video-matting';
