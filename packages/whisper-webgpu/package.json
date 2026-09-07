@@ -24,8 +24,8 @@
 		"url": "https://github.com/remotion-dev/remotion/issues"
 	},
 	"dependencies": {
-		"@huggingface/transformers": "catalog:",
-		"@remotion/captions": "workspace:*"
+		"@remotion/captions": "workspace:*",
+		"onnxruntime-web": "1.26.0-dev.20260416-b7804b056c"
 	},
 	"exports": {
 		".": {
@@ -33,9 +33,14 @@
 			"module": "./dist/esm/index.mjs",
 			"import": "./dist/esm/index.mjs"
 		},
+		"./private-transformers": {
+			"module": "./dist/esm/private-transformers.mjs",
+			"import": "./dist/esm/private-transformers.mjs"
+		},
 		"./package.json": "./package.json"
 	},
 	"devDependencies": {
+		"@huggingface/transformers": "catalog:",
 		"@remotion/eslint-config-internal": "workspace:*",
 		"@typescript/native-preview": "catalog:",
 		"eslint": "catalog:"
