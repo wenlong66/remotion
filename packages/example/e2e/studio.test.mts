@@ -1839,9 +1839,54 @@ test.describe('visual mode', () => {
 			await expect(
 				dialog.getByText('Keyboard shortcuts', {exact: true}),
 			).toBeVisible();
+			const keyboardShortcutsEnabled = dialog.getByRole('checkbox', {
+				name: 'Keyboard shortcuts',
+			});
+			await expect(keyboardShortcutsEnabled).toBeChecked();
+			await keyboardShortcutsEnabled.uncheck();
+			await expect(
+				dialog.getByRole('list', {name: 'Playback', exact: true}),
+			).toHaveCount(0);
+			await expect
+				.poll(() => fs.readFileSync(configFile, 'utf8'))
+				.toContain('Config.setKeyboardShortcutsEnabled(false);');
+			await keyboardShortcutsEnabled.check();
+			await expect
+				.poll(() => fs.readFileSync(configFile, 'utf8'))
+				.not.toContain('Config.setKeyboardShortcutsEnabled');
 			await expect(
 				dialog.getByRole('list', {name: 'Playback', exact: true}),
 			).toBeVisible();
+			const fixedShortcutRow = dialog
+				.getByRole('listitem')
+				.filter({hasText: '1 second back'});
+			await expect(fixedShortcutRow.getByRole('button')).toHaveCount(0);
+			const playPauseShortcut = dialog.getByRole('button', {
+				name: 'Change shortcut for Play / Pause',
+			});
+			const playPauseActions = dialog.getByRole('button', {
+				name: 'Actions for Play / Pause',
+			});
+			await expect(playPauseActions).toBeVisible();
+			await playPauseActions.click();
+			await page.getByText('Remap shortcut', {exact: true}).click();
+			await expect(playPauseShortcut).toContainText('Press shortcut');
+			await page.keyboard.press('q');
+			await expect
+				.poll(() => fs.readFileSync(configFile, 'utf8'))
+				.toContain('Config.setKeyboardShortcuts({');
+			await expect(playPauseShortcut).toContainText('Q');
+			await playPauseActions.click();
+			await expect(
+				page.getByText('Reset to default', {exact: true}),
+			).toBeVisible();
+			await page.getByText('Remap shortcut', {exact: true}).click();
+			await expect(playPauseShortcut).toContainText('Press shortcut');
+			await page.keyboard.press('Space');
+			await expect
+				.poll(() => fs.readFileSync(configFile, 'utf8'))
+				.not.toContain("'playPause'");
+			await expect(playPauseShortcut).toContainText('Space');
 			await dialog.getByRole('button', {name: 'Studio', exact: true}).click();
 
 			const askAIEnabled = dialog.getByTitle('Ask AI enabled', {exact: true});
@@ -2990,7 +3035,10 @@ export const SequenceShiftRepro = () => {
 			expect(webMcpSelection).toEqual({
 				currentFrame: 3,
 				currentSelection: contextForAgents,
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				selectionType: 'sequence',
 				selectedSequence: expect.objectContaining({
 					sequenceId: expect.any(String),
@@ -3033,7 +3081,10 @@ export const SequenceShiftRepro = () => {
 				}
 			).sequences;
 			expect(webMcpSequences).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				sequences: expect.arrayContaining([
 					expect.objectContaining({
 						sequenceId: selectedSequence.sequenceId,
@@ -3072,7 +3123,10 @@ export const SequenceShiftRepro = () => {
 				{sequenceId: sequenceToSelect?.sequenceId ?? ''},
 			);
 			expect(webMcpSelectSequenceResult).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				selectedSequence: expect.objectContaining({
 					sequenceId: sequenceToSelect?.sequenceId,
 					selectable: true,
@@ -3154,7 +3208,10 @@ export const SequenceShiftRepro = () => {
 				}
 			).html;
 			expect(webMcpCanvasHtml).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				currentFrame: 3,
 				html: expect.any(String),
 				htmlLength: canvasHtml.length,
@@ -3205,7 +3262,10 @@ export const SequenceShiftRepro = () => {
 				}
 			).outlines.find((outline) => outline.name === '0% gridline');
 			expect(webMcpOutlines).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				currentFrame: 3,
 				outlines: expect.any(Array),
 			});
@@ -3298,7 +3358,10 @@ export const SequenceShiftRepro = () => {
 				return tool.execute({compositionName: 'package-absolute-fill'});
 			});
 			expect(webMcpSelectCompositionResult).toEqual({
-				currentComposition: 'package-absolute-fill',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'package-absolute-fill',
+				},
 			});
 			await expect
 				.poll(() => new URL(page.url()).pathname)
@@ -3366,7 +3429,10 @@ export const SequenceShiftRepro = () => {
 				return tool.execute({});
 			});
 			expect(webMcpGuides).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				guidesVisible: true,
 				guides: [
 					{
@@ -3405,7 +3471,10 @@ export const SequenceShiftRepro = () => {
 				return tool.execute({visible: false});
 			});
 			expect(webMcpHideGuidesResult).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				guidesVisible: false,
 			});
 			await expect(page.locator('.__remotion_editor_guide')).toHaveCount(0);
@@ -3437,7 +3506,10 @@ export const SequenceShiftRepro = () => {
 				return tool.execute({visible: true});
 			});
 			expect(webMcpShowGuidesResult).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				guidesVisible: true,
 			});
 			await expect(page.locator('.__remotion_editor_guide')).toHaveCount(2);
@@ -3469,7 +3541,10 @@ export const SequenceShiftRepro = () => {
 				return tool.execute({orientation: 'vertical', position: 640});
 			});
 			expect(webMcpAddGuideResult).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				guide: {
 					id: expect.any(String),
 					orientation: 'vertical',
@@ -3518,7 +3593,10 @@ export const SequenceShiftRepro = () => {
 				{guideId: addedGuideId},
 			);
 			expect(webMcpRemoveGuideResult).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				guideId: addedGuideId,
 				removed: true,
 			});
@@ -3557,7 +3635,10 @@ export const SequenceShiftRepro = () => {
 				return tool.execute({playbackRate: 1.5});
 			});
 			expect(webMcpPlaybackRateResult).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				playbackRate: 1.5,
 			});
 			await expect(
@@ -3587,7 +3668,10 @@ export const SequenceShiftRepro = () => {
 				return tool.execute({zoom: 0.5});
 			});
 			expect(webMcpTimelineZoomResult).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				timelineZoom: expect.any(Number),
 			});
 			const normalizedTimelineZoom = (
@@ -3618,7 +3702,10 @@ export const SequenceShiftRepro = () => {
 				return tool.execute({zoom: 1});
 			});
 			expect(webMcpMaximumTimelineZoomResult).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				timelineZoom: 1,
 			});
 			await expect(
@@ -3649,7 +3736,10 @@ export const SequenceShiftRepro = () => {
 				return tool.execute({});
 			});
 			expect(webMcpMuteResult).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				muted: true,
 			});
 			await expect(
@@ -3676,7 +3766,10 @@ export const SequenceShiftRepro = () => {
 				return tool.execute({});
 			});
 			expect(webMcpUnmuteResult).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				muted: false,
 			});
 			await expect(
@@ -3703,7 +3796,10 @@ export const SequenceShiftRepro = () => {
 				return tool.execute({});
 			});
 			expect(webMcpPlayResult).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				playing: true,
 			});
 			await expect(
@@ -3730,7 +3826,10 @@ export const SequenceShiftRepro = () => {
 				return tool.execute({});
 			});
 			expect(webMcpPauseResult).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				playing: false,
 			});
 			await expect(
@@ -3758,7 +3857,10 @@ export const SequenceShiftRepro = () => {
 			});
 			expect(webMcpSeekResult).toEqual({
 				currentFrame: 179,
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 			});
 			await expect(
 				page.getByRole('button', {name: '179', exact: true}),
@@ -3780,7 +3882,10 @@ export const SequenceShiftRepro = () => {
 				return tool.execute();
 			});
 			expect(webMcpPlaybackState).toEqual({
-				currentComposition: 'AnimatedBarChart',
+				currentContent: {
+					type: 'composition',
+					compositionId: 'AnimatedBarChart',
+				},
 				currentFrame: 179,
 				playing: false,
 				muted: false,
@@ -3919,7 +4024,7 @@ export const SequenceShiftRepro = () => {
 					}),
 				)
 				.toEqual({
-					currentComposition: null,
+					currentContent: {type: 'asset', asset: 'test.gif'},
 					currentFrame: null,
 					playing: null,
 					muted: null,
@@ -3944,7 +4049,7 @@ export const SequenceShiftRepro = () => {
 					}),
 				)
 				.toEqual({
-					currentComposition: null,
+					currentContent: {type: 'asset', asset: 'test.gif'},
 					currentFrame: null,
 					html: null,
 					htmlLength: null,
@@ -3966,10 +4071,37 @@ export const SequenceShiftRepro = () => {
 					}),
 				)
 				.toEqual({
-					currentComposition: null,
+					currentContent: {type: 'asset', asset: 'test.gif'},
 					currentFrame: null,
 					outlines: [],
 				});
+			for (const preview of [
+				{
+					route: '/assets/test.gif',
+					content: {type: 'asset', asset: 'test.gif'},
+				},
+				{
+					route: '/outputs/public%2Ftest.gif',
+					content: {type: 'output', path: 'public/test.gif'},
+				},
+			]) {
+				await page.goto(`${STUDIO_URL}${preview.route}`);
+				await expect
+					.poll(() =>
+						page.evaluate(async () => {
+							const tools = (
+								window as typeof window & {
+									readonly __remotion_webmcp_tools: Map<
+										string,
+										{readonly execute: () => Promise<unknown>}
+									>;
+								}
+							).__remotion_webmcp_tools;
+							return tools.get('get_selection')?.execute() ?? null;
+						}),
+					)
+					.toMatchObject({currentContent: preview.content});
+			}
 		} finally {
 			fs.writeFileSync(configFile, configBeforeTest);
 		}

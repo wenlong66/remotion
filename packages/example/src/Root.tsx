@@ -237,6 +237,7 @@ import {HalftoneGradient} from './EffectsTestbed/HalftoneGradient';
 import {NoiseDisplacementText} from './EffectsTestbed/NoiseDisplacementText';
 import {PaletteMapEffect} from './EffectsTestbed/PaletteMapEffect';
 import {RadialProgressiveBlurTest} from './EffectsTestbed/RadialProgressiveBlur';
+import {TearTest} from './EffectsTestbed/Tear';
 import {VideoEffectsFastRefresh} from './EffectsTestbed/VideoEffectsFastRefresh';
 import {Empty} from './Empty';
 import {
@@ -2269,6 +2270,14 @@ export const Index: React.FC = () => {
 				/>
 			</Folder>
 			<Folder name="Effects">
+				<Composition
+					id="tear-test"
+					component={TearTest}
+					width={1280}
+					height={720}
+					fps={30}
+					durationInFrames={150}
+				/>
 				<RiveEffectsTestbed />
 				<GifEffectsTestbed />
 				<AnimatedImageEffects />

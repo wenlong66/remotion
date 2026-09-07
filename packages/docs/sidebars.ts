@@ -330,6 +330,7 @@ const sidebars: SidebarsConfig = {
 				'effects/skew',
 				'effects/speckle',
 				'effects/starburst',
+				'effects/tear',
 				'effects/thermal-vision',
 				'effects/tile',
 				'effects/tint',
@@ -942,6 +943,22 @@ const sidebars: SidebarsConfig = {
 				'vercel/render-still-on-vercel',
 				'vercel/upload-to-vercel-blob',
 				'vercel/vercel-types',
+			],
+		},
+		{
+			type: 'category',
+			label: '@remotion/video-matting',
+			link: {
+				type: 'doc',
+				id: 'video-matting/index',
+			},
+			items: [
+				'video-matting/can-use-video-matting',
+				'video-matting/get-available-models',
+				'video-matting/is-video-matting-model-cached',
+				'video-matting/load-video-matting-model',
+				'video-matting/separate-video-layers',
+				'video-matting/dispose-video-matting-model',
 			],
 		},
 		{

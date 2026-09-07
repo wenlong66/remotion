@@ -701,8 +701,7 @@ export const Canvas: React.FC<{
 	useEffect(() => {
 		const resetBinding = keybindings.registerKeybinding({
 			event: 'keydown',
-			key: '0',
-			commandCtrlKey: false,
+			action: 'resetZoom',
 			callback: onReset,
 			preventDefault: true,
 			triggerIfInputFieldFocused: false,
@@ -711,8 +710,7 @@ export const Canvas: React.FC<{
 
 		const zoomIn = keybindings.registerKeybinding({
 			event: 'keydown',
-			key: '+',
-			commandCtrlKey: false,
+			action: 'zoomIn',
 			callback: onZoomIn,
 			preventDefault: true,
 			triggerIfInputFieldFocused: false,
@@ -721,8 +719,7 @@ export const Canvas: React.FC<{
 
 		const zoomOut = keybindings.registerKeybinding({
 			event: 'keydown',
-			key: '-',
-			commandCtrlKey: false,
+			action: 'zoomOut',
 			callback: onZoomOut,
 			preventDefault: true,
 			triggerIfInputFieldFocused: false,
