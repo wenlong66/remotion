@@ -10,15 +10,11 @@ export const EXTRA_PACKAGES: Record<string, string> = {
 };
 
 export const EXTRA_PACKAGES_DOCS: Record<string, string> = {
-	'@huggingface/transformers': 'https://www.remotion.dev/docs/whisper-webgpu',
-	mediabunny: 'https://www.remotion.dev/docs/mediabunny/version',
-	'@mediabunny/ac3':
-		'https://www.remotion.dev/docs/mediabunny/formats#ac-3-and-e-ac-3',
-	'@mediabunny/dts': 'https://www.remotion.dev/docs/mediabunny/formats#dts',
+	...Object.fromEntries(
+		extraPackages.map(({name, versionDocsUrl}) => [name, versionDocsUrl]),
+	),
 	'@mediabunny/mp3-encoder': 'https://www.remotion.dev/docs/mediabunny/version',
 	'@mediabunny/aac-encoder': 'https://www.remotion.dev/docs/mediabunny/version',
 	'@mediabunny/flac-encoder':
 		'https://www.remotion.dev/docs/mediabunny/version',
-	'@mediabunny/prores': 'https://www.remotion.dev/docs/mediabunny/formats',
-	zod: 'https://www.remotion.dev/docs/zod-types/',
 };

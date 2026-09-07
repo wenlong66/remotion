@@ -124,6 +124,7 @@ export type ExtraPackage = {
 	version: string;
 	description: string;
 	docsUrl: string;
+	versionDocsUrl: string;
 };
 
 export const extraPackages: ExtraPackage[] = [
@@ -132,36 +133,43 @@ export const extraPackages: ExtraPackage[] = [
 		version: '4.2.0',
 		description: 'Machine learning models in the browser',
 		docsUrl: 'https://huggingface.co/docs/transformers.js',
+		versionDocsUrl: 'https://www.remotion.dev/docs/whisper-webgpu',
 	},
 	{
 		name: 'mediabunny',
 		version: '1.55.5',
 		description: 'Multimedia library used by Remotion',
 		docsUrl: 'https://www.remotion.dev/docs/mediabunny/version',
+		versionDocsUrl: 'https://www.remotion.dev/docs/mediabunny/version',
 	},
 	{
 		name: '@mediabunny/ac3',
 		version: '1.55.5',
 		description: 'AC-3 and E-AC-3 audio codec support for Mediabunny',
 		docsUrl: 'https://www.remotion.dev/docs/mediabunny/formats#ac-3-and-e-ac-3',
+		versionDocsUrl:
+			'https://www.remotion.dev/docs/mediabunny/formats#ac-3-and-e-ac-3',
 	},
 	{
 		name: '@mediabunny/dts',
 		version: '1.55.5',
 		description: 'DTS audio codec support for Mediabunny',
 		docsUrl: 'https://www.remotion.dev/docs/mediabunny/formats#dts',
+		versionDocsUrl: 'https://www.remotion.dev/docs/mediabunny/formats#dts',
 	},
 	{
 		name: '@mediabunny/prores',
 		version: '1.55.5',
 		description: 'Apple ProRes decoder support for Mediabunny',
 		docsUrl: 'https://www.remotion.dev/docs/mediabunny/formats',
+		versionDocsUrl: 'https://www.remotion.dev/docs/mediabunny/formats',
 	},
 	{
 		name: 'zod',
 		version: '4.5.4',
 		description: 'TypeScript-first schema validation',
 		docsUrl: 'https://zod.dev',
+		versionDocsUrl: 'https://www.remotion.dev/docs/zod-types/',
 	},
 ];
 
