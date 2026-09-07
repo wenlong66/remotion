@@ -84,7 +84,7 @@ const elementImplementations = {
 		component: AudioOscilloscope,
 		contributors: [{username: 'samohovets', contribution: 'Author'}],
 		description:
-			'A glowing oscilloscope waveform for visualizing voices, podcasts, and other audio.',
+			'An oscilloscope waveform for visualizing voices, podcasts, and other audio.',
 		dependencies: [
 			{name: '@remotion/media', version: null},
 			{name: '@remotion/media-utils', version: null},

@@ -1304,6 +1304,17 @@ test('clears hover backgrounds even if pointer leave events are lost', async ({
 	await expect
 		.poll(() => getBackgroundColor(addSolid))
 		.toBe('rgba(255, 255, 255, 0.06)');
+	const neutralArea = studio.locator('[data-sidebar-toggle="right"]');
+
+	await addSolid.click();
+	const solid = studio.getByText('<Solid>', {exact: true});
+	await expect(solid).toBeVisible();
+	await expect(studio.locator('svg[viewBox="0 0 24 16"]')).toBeVisible();
+	await solid.hover();
+	const hoveredOutline = studio.locator(
+		'polygon[data-remotion-studio-selected-outline-key]',
+	);
+	await expect(hoveredOutline).toHaveCount(1);
 
 	// Browsers can fail to deliver pointer leave events when the pointer
 	// exits the Studio <iframe>. Simulate this by suppressing them before
@@ -1322,7 +1333,9 @@ test('clears hover backgrounds even if pointer leave events are lost', async ({
 		}
 	});
 
-	const neutralArea = studio.locator('[data-sidebar-toggle="right"]');
+	await page.locator('iframe').dispatchEvent('pointerout');
+	await expect(hoveredOutline).toHaveCount(0, {timeout: 5000});
+	await neutralArea.hover();
 
 	await studio.getByRole('button', {name: 'Assets', exact: true}).click();
 	const assetFolder = studio.getByTitle('hover-folder', {exact: true});
