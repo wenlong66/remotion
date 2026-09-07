@@ -101,7 +101,7 @@ test.describe('captions inspector', () => {
 		await expect(defaultCaption).toBeEnabled();
 
 		const importCaptionsButton = page.getByRole('button', {
-			name: 'Import',
+			name: 'Import captions',
 			exact: true,
 		});
 		const importCaptionsInput = page.getByLabel('Import captions file');

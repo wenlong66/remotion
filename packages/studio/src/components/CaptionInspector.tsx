@@ -1,9 +1,11 @@
 import type {Caption} from '@remotion/captions';
 import React, {useCallback, useRef, useState} from 'react';
-import {CURRENT_COLOR, LIGHT_TEXT} from '../helpers/colors';
+import {LIGHT_TEXT} from '../helpers/colors';
+import {FOCUS_VISIBLE_ONLY_CLASS_NAME} from '../helpers/hoverable';
 import {UploadIcon} from '../icons/upload';
-import {Button} from './Button';
+import {SetSelectedModalContext} from '../state/modals';
 import {CaptionTextEditor} from './CaptionTextEditor';
+import {InlineAction} from './InlineAction';
 import {CollapsibleInspectorSectionHeader} from './InspectorPanel/CollapsibleInspectorSectionHeader';
 import {InspectorSectionHeader} from './InspectorPanel/common';
 import {sectionHeaderEnd} from './InspectorPanel/styles';
@@ -46,12 +48,17 @@ export const CaptionInspector: React.FC<{
 }) => {
 	const fileInput = useRef<HTMLInputElement>(null);
 	const [isImporting, setIsImporting] = useState(false);
+	const {setSelectedModal} = React.useContext(SetSelectedModalContext);
 
 	const importCaptions = useCallback(
-		async (event: React.ChangeEvent<HTMLInputElement>) => {
-			const file = event.currentTarget.files?.[0];
-			event.currentTarget.value = '';
-			if (!file || onReplaceCaptions === null) {
+		async ({
+			fileName,
+			contents,
+		}: {
+			fileName: string;
+			contents: Promise<string>;
+		}) => {
+			if (onReplaceCaptions === null) {
 				return;
 			}
 
@@ -59,13 +66,13 @@ export const CaptionInspector: React.FC<{
 			try {
 				onReplaceCaptions(
 					parseCaptionFile({
-						fileName: file.name,
-						contents: await file.text(),
+						fileName,
+						contents: await contents,
 					}),
 				);
 			} catch (error) {
 				showNotification(
-					`Could not import ${file.name}: ${error instanceof Error ? error.message : String(error)}`,
+					`Could not import ${fileName}: ${error instanceof Error ? error.message : String(error)}`,
 					5000,
 				);
 			} finally {
@@ -74,6 +81,40 @@ export const CaptionInspector: React.FC<{
 		},
 		[onReplaceCaptions],
 	);
+
+	const onFileSelected = useCallback(
+		(event: React.ChangeEvent<HTMLInputElement>) => {
+			const file = event.currentTarget.files?.[0];
+			event.currentTarget.value = '';
+			if (!file) {
+				return;
+			}
+
+			importCaptions({fileName: file.name, contents: file.text()}).catch(
+				() => undefined,
+			);
+		},
+		[importCaptions],
+	);
+
+	const openCaptionSelection = useCallback(() => {
+		setSelectedModal({
+			type: 'quick-switcher',
+			mode: 'assets',
+			invocationTimestamp: Date.now(),
+			assetSelection: {
+				initialQuery: 'type:json',
+				onSelectFile: () => fileInput.current?.click(),
+				onSelected: (asset) => {
+					return importCaptions({
+						fileName: asset.name,
+						contents: fetch(asset.src).then((response) => response.text()),
+					}).catch(() => undefined);
+				},
+			},
+			compositionSelection: null,
+		});
+	}, [importCaptions, setSelectedModal]);
 
 	return (
 		<>
@@ -88,28 +129,25 @@ export const CaptionInspector: React.FC<{
 										accept=".json"
 										aria-label="Import captions file"
 										hidden
-										onChange={importCaptions}
+										onChange={onFileSelected}
 										type="file"
 									/>
-									<Button
-										buttonContainerStyle={{
-											alignItems: 'center',
-											display: 'flex',
-											gap: 4,
-										}}
+									<InlineAction
+										aria-label="Import captions"
+										className={FOCUS_VISIBLE_ONLY_CLASS_NAME}
 										disabled={isImporting}
-										onClick={() => fileInput.current?.click()}
-										size="condensed"
+										onClick={openCaptionSelection}
+										renderAction={(color) => (
+											<UploadIcon
+												aria-hidden="true"
+												color={color}
+												focusable="false"
+												style={{height: 14, width: 14}}
+											/>
+										)}
 										title={importTooltip}
-									>
-										<UploadIcon
-											aria-hidden="true"
-											color={CURRENT_COLOR}
-											focusable="false"
-											style={{height: 12, width: 12}}
-										/>
-										{isImporting ? 'Importing…' : 'Import'}
-									</Button>
+										variant={null}
+									/>
 								</>
 							)}
 							{readOnly ? (
