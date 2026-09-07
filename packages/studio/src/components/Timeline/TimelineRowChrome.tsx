@@ -1,5 +1,6 @@
 import React, {useCallback, useContext, useMemo} from 'react';
 import {TIMELINE_TRACK_SEPARATOR} from '../../helpers/colors';
+import {createDragAwareDoubleClickTracker} from '../../helpers/drag-aware-double-click';
 import {Padder} from './Padder';
 import {
 	getTimelineRowIndentWidth,
@@ -107,6 +108,10 @@ export const TimelineRowChrome: React.FC<{
 		TimelineRowLayoutContext,
 	);
 	const selectedBackground = useContext(TimelineRowSelectedBackgroundContext);
+	const doubleClickTracker = useMemo(
+		() => createDragAwareDoubleClickTracker(),
+		[],
+	);
 	const indentWidth = getTimelineRowIndentWidth(depth);
 
 	const chromeColumnStyle = useMemo(
@@ -145,6 +150,10 @@ export const TimelineRowChrome: React.FC<{
 
 	const onDoubleClickIfNotInteractive = useCallback(
 		(e: React.MouseEvent<HTMLDivElement>) => {
+			if (!doubleClickTracker.doubleClickWasPrimary()) {
+				return;
+			}
+
 			const {target} = e;
 			if (
 				target instanceof Element &&
@@ -160,7 +169,7 @@ export const TimelineRowChrome: React.FC<{
 
 			onDoubleClick?.(e);
 		},
-		[onDoubleClick],
+		[doubleClickTracker, onDoubleClick],
 	);
 
 	const highlightBackground = getTimelineRowHighlightBackground({
@@ -229,6 +238,7 @@ export const TimelineRowChrome: React.FC<{
 				onDragLeave={onDragLeave}
 				onDragOver={onDragOver}
 				onDrop={onDrop}
+				onPointerDownCapture={doubleClickTracker.beginPointerGesture}
 				onPointerDown={selectable ? onPointerDown : undefined}
 				onContextMenu={selectable ? onContextMenu : undefined}
 				onDoubleClick={onDoubleClickIfNotInteractive}
@@ -245,6 +255,7 @@ export const TimelineRowChrome: React.FC<{
 			onDragLeave={onDragLeave}
 			onDragOver={onDragOver}
 			onDrop={onDrop}
+			onPointerDownCapture={doubleClickTracker.beginPointerGesture}
 			onPointerDown={selectable ? onPointerDown : undefined}
 			onContextMenu={selectable ? onContextMenu : undefined}
 			onDoubleClick={onDoubleClickIfNotInteractive}

@@ -190,7 +190,7 @@ const TimelineSequenceCurrentFrame: React.FC<{
 	readonly onMoveDragPointerDown: (
 		e: React.PointerEvent<HTMLDivElement>,
 	) => void;
-	readonly onPointerDownCapture: () => void;
+	readonly onPointerDownCapture: React.PointerEventHandler<HTMLDivElement>;
 	readonly onDoubleClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }> = ({
 	s,
@@ -538,6 +538,9 @@ const TimelineSequenceInner: React.FC<{
 		(e: React.MouseEvent<HTMLDivElement>) => {
 			if (isTimelineSelectionModifierEvent(e)) {
 				e.stopPropagation();
+				return;
+			}
+			if (!dragAwareDoubleClick.doubleClickWasPrimary()) {
 				return;
 			}
 

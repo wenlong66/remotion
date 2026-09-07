@@ -118,6 +118,30 @@ export const E2eTestRoot = () => <Composition id="timeline-edges" component={Lay
 		const movableLayer = page.locator(
 			'[data-timeline-marquee-item][title="Natural end"]',
 		);
+		await movableLayer.dispatchEvent('pointerdown', {
+			button: 2,
+			buttons: 2,
+			pointerId: 1,
+		});
+		await movableLayer.dispatchEvent('pointerup', {
+			button: 2,
+			buttons: 0,
+			pointerId: 1,
+		});
+		await movableLayer.dispatchEvent('pointerdown', {
+			button: 0,
+			buttons: 1,
+			pointerId: 1,
+		});
+		await movableLayer.dispatchEvent('pointerup', {
+			button: 0,
+			buttons: 0,
+			pointerId: 1,
+		});
+		await movableLayer.dispatchEvent('dblclick', {button: 0, detail: 2});
+		await page.waitForTimeout(100);
+		expect(openInEditorRequests).toHaveLength(0);
+
 		await movableLayer.dblclick({position: {x: 30, y: 10}});
 		await expect.poll(() => openInEditorRequests.length).toBe(1);
 
