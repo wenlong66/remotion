@@ -89,6 +89,7 @@ const baseStyle: React.CSSProperties = {
 export type TimelineSequenceDurationDragTarget = {
 	readonly fileName: string;
 	readonly initialDuration: number;
+	readonly maximumDuration: number;
 	readonly minimumDuration: number;
 	readonly nodePath: SequencePropsSubscriptionKey;
 	readonly schema: InteractivitySchema;
@@ -406,12 +407,18 @@ const isFromDraggableSequence = (sequence: TSequence) => {
 export const getTimelineSequenceDurationDragValue = ({
 	initialDuration,
 	deltaFrames,
+	maximumDuration,
 	minimumDuration = 1,
 }: {
 	readonly initialDuration: number;
 	readonly deltaFrames: number;
+	readonly maximumDuration: number;
 	readonly minimumDuration?: number;
-}) => Math.max(minimumDuration, initialDuration + deltaFrames);
+}) =>
+	Math.min(
+		maximumDuration,
+		Math.max(minimumDuration, initialDuration + deltaFrames),
+	);
 
 export const getTimelineSequenceLeftEdgeDragDelta = ({
 	initialDuration,
@@ -531,6 +538,7 @@ export const getTimelineSequenceDurationDragChanges = ({
 		const nextValue = getTimelineSequenceDurationDragValue({
 			initialDuration: target.initialDuration,
 			deltaFrames,
+			maximumDuration: target.maximumDuration,
 			minimumDuration: target.minimumDuration,
 		});
 
@@ -725,12 +733,14 @@ export const getTimelineSequenceDurationDragTargets = ({
 	sequences,
 	overrideIdsToNodePaths,
 	propStatuses,
+	timelineDurationInFrames,
 }: {
 	readonly draggedNodePathInfo: SequenceNodePathInfo;
 	readonly selectedItems: readonly TimelineSelection[];
 	readonly sequences: TSequence[];
 	readonly overrideIdsToNodePaths: OverrideIdToNodePaths;
 	readonly propStatuses: PropStatuses;
+	readonly timelineDurationInFrames: number;
 }): TimelineSequenceDurationDragTarget[] | null => {
 	const draggedSelectionKey =
 		getTimelineSequenceSelectionKey(draggedNodePathInfo);
@@ -793,14 +803,19 @@ export const getTimelineSequenceDurationDragTargets = ({
 
 		const key = stringifySequenceSubscriptionKey(nodePath);
 		if (!targets.has(key)) {
+			const minimumDuration = Math.max(
+				1 - originalSequence.from,
+				getMinimumSequenceDuration({sequence: originalSequence, sequences}),
+			);
 			targets.set(key, {
 				fileName: nodePath.absolutePath,
 				initialDuration: originalSequence.duration,
-				// A negative start needs enough duration to retain one visible frame.
-				minimumDuration: Math.max(
-					1 - originalSequence.from,
-					getMinimumSequenceDuration({sequence: originalSequence, sequences}),
+				maximumDuration: Math.max(
+					minimumDuration,
+					timelineDurationInFrames - track.cascadedStart,
 				),
+				// A negative start needs enough duration to retain one visible frame.
+				minimumDuration,
 				nodePath,
 				schema: controls.schema,
 			});
@@ -1886,6 +1901,7 @@ const TimelineSequenceRightEdgeDragHandleInner: React.FC<{
 						sequences: sequencesRef.current,
 						overrideIdsToNodePaths: latestOverrideIdsToNodePaths,
 						propStatuses: propStatusesRef.current,
+						timelineDurationInFrames,
 					}) ?? [])
 				: [];
 
@@ -1930,6 +1946,7 @@ const TimelineSequenceRightEdgeDragHandleInner: React.FC<{
 							getTimelineSequenceDurationDragValue({
 								initialDuration: target.initialDuration,
 								deltaFrames,
+								maximumDuration: target.maximumDuration,
 								minimumDuration: target.minimumDuration,
 							}),
 						),
