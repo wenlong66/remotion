@@ -21,6 +21,7 @@ import {InlineDropdown} from './InlineDropdown';
 import {sectionHeader} from './InspectorPanel/styles';
 import {
 	askAIKeyboardShortcutGroup,
+	defaultKeyboardShortcuts,
 	formatKeyboardShortcut,
 	getKeyboardShortcutsForAction,
 	keyboardShortcutGroups,
@@ -418,10 +419,24 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 															return;
 														}
 
-														setConfiguredShortcuts((current) => ({
-															...current,
-															[shortcut.actionId!]: value,
-														}));
+														setConfiguredShortcuts((current) => {
+															if (
+																defaultKeyboardShortcuts[
+																	shortcut.actionId!
+																].some((defaultShortcut) =>
+																	isSameShortcut(defaultShortcut, value),
+																)
+															) {
+																const next = {...current};
+																delete next[shortcut.actionId!];
+																return next;
+															}
+
+															return {
+																...current,
+																[shortcut.actionId!]: value,
+															};
+														});
 														setShortcutsEdited(true);
 														setRecording(null);
 													}}

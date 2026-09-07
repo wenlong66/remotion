@@ -1862,7 +1862,12 @@ test.describe('visual mode', () => {
 				.toContain('Config.setKeyboardShortcuts({');
 			await expect(playPauseShortcut).toContainText('Q');
 			await playPauseActions.click();
-			await page.getByText('Reset to default', {exact: true}).click();
+			await expect(
+				page.getByText('Reset to default', {exact: true}),
+			).toBeVisible();
+			await page.getByText('Remap shortcut', {exact: true}).click();
+			await expect(playPauseShortcut).toContainText('Press shortcut');
+			await page.keyboard.press('Space');
 			await expect
 				.poll(() => fs.readFileSync(configFile, 'utf8'))
 				.not.toContain("'playPause'");
