@@ -43,9 +43,9 @@ The shape of inputs and outputs is not currently stable.
 
 Tools that modify the timeline, playback or guides require a composition to be open.
 
-### `currentContent`<AvailableFrom v="4.0.523" />
+### `currentContent`
 
-Tool responses identify the content open in the canvas using `currentContent`, replacing `currentComposition`. It is `null` when no content is open. Browser-rendered outputs include metadata without the blob itself.
+Tool responses identify the content open in the canvas using `currentContent`. It is `null` when no content is open. Browser-rendered outputs include metadata without the blob itself.
 
 ```ts title="CurrentContent"
 type CurrentContent =
