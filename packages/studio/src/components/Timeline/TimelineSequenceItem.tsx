@@ -132,8 +132,6 @@ const effectDropHighlight: React.CSSProperties = {
 	outlineOffset: -1,
 };
 
-const SEQUENCE_REORDER_MIME_TYPE = 'application/remotion-sequence-reorder';
-
 type SequenceReorderDragData = {
 	readonly nodePath: SequencePropsSubscriptionKey;
 	readonly nodePathKey: string;
@@ -220,14 +218,6 @@ const sequenceReorderAfterLineWrapper: React.CSSProperties = {
 const sequenceReorderAfterLine: React.CSSProperties = {
 	...sequenceReorderLineBase,
 	top: -1,
-};
-
-const hasSequenceReorderDragType = (dataTransfer: DataTransfer) => {
-	return Array.from(dataTransfer.types).includes(SEQUENCE_REORDER_MIME_TYPE);
-};
-
-const isSequenceReorderDrag = (dataTransfer: DataTransfer) => {
-	return hasSequenceReorderDragType(dataTransfer);
 };
 
 const getDestinationIndex = ({
@@ -1342,11 +1332,7 @@ const TimelineSequenceItemInner: React.FC<{
 
 	const onEffectDragOver = useCallback(
 		(e: React.DragEvent<HTMLDivElement>) => {
-			if (
-				!canDropEffect ||
-				isSequenceReorderDrag(e.dataTransfer) ||
-				!hasEffectDragType(e.dataTransfer)
-			) {
+			if (!canDropEffect || !hasEffectDragType(e.dataTransfer)) {
 				return;
 			}
 
@@ -1375,7 +1361,6 @@ const TimelineSequenceItemInner: React.FC<{
 				previewServerState.type !== 'connected' ||
 				nodePath === null ||
 				validatedLocation === null ||
-				isSequenceReorderDrag(e.dataTransfer) ||
 				!hasEffectDragType(e.dataTransfer)
 			) {
 				return;
