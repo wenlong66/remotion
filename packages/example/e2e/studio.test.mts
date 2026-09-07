@@ -401,16 +401,32 @@ test.describe('visual mode', () => {
 		await mediaTrack.dblclick();
 		await expect(page.getByRole('textbox')).toHaveCount(0);
 
-		await page.goto(`${STUDIO_URL}/assets/whip.mp3`);
+		await page.goto(`${STUDIO_URL}/assets/podcast.wav`);
 		await expect(
 			page.getByRole('img', {name: 'Audio asset', exact: true}),
 		).toBeVisible();
 		await expect(page.getByTestId('asset-media-preview')).not.toBeInViewport();
 		await expect(page.locator('[data-timeline-scrollable]')).toBeVisible();
-		await expect(page.getByTitle('whip.mp3').last()).toBeVisible();
+		await expect(page.getByTitle('podcast.wav').last()).toBeVisible();
 		await expect(
 			page.getByRole('button', {name: 'Play', exact: true}),
 		).toBeEnabled();
+		const audioTimelineZoom = page.getByTitle(/^Timeline zoom \(/);
+		await expect(audioTimelineZoom).toBeVisible();
+		const audioTimelineScrubber = page.locator('[data-timeline-scrubber]');
+		const audioTimelineWidthBeforeZoom = await audioTimelineScrubber.evaluate(
+			(element) => element.getBoundingClientRect().width,
+		);
+		await page
+			.getByRole('button', {name: 'Zoom in timeline', exact: true})
+			.click();
+		await expect
+			.poll(() =>
+				audioTimelineScrubber.evaluate(
+					(element) => element.getBoundingClientRect().width,
+				),
+			)
+			.toBeGreaterThan(audioTimelineWidthBeforeZoom);
 		await expect(checkerboardToggle).toHaveCount(0);
 		await expect(rulersToggle).toHaveCount(0);
 		await expect(horizontalRuler).toHaveCount(0);
