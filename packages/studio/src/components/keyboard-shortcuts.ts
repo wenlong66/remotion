@@ -61,9 +61,8 @@ export const defaultKeyboardShortcuts: Record<
 	resetZoom: [{key: '0'}],
 	undo: [{key: 'z', commandOrControl: true}],
 	redo: [
-		isMac
-			? {key: 'z', commandOrControl: true, shift: true}
-			: {key: 'y', commandOrControl: true},
+		...(isMac ? [] : [{key: 'y', commandOrControl: true}]),
+		{key: 'z', commandOrControl: true, shift: true},
 	],
 	selectAllSequenceRows: [{key: 'a', commandOrControl: true}],
 	selectTranslateProp: [{key: 'p'}],

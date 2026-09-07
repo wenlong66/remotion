@@ -1,5 +1,6 @@
 import {expect, test} from 'bun:test';
 import {
+	defaultKeyboardShortcuts,
 	formatKeyboardShortcut,
 	formatKeyboardShortcutForAria,
 	keyboardEventMatchesShortcut,
@@ -15,6 +16,17 @@ const event = (overrides: Partial<KeyboardEvent>): KeyboardEvent =>
 		shiftKey: false,
 		...overrides,
 	}) as KeyboardEvent;
+
+test('includes the platform redo shortcuts', () => {
+	expect(defaultKeyboardShortcuts.redo).toEqual(
+		isMac
+			? [{key: 'z', commandOrControl: true, shift: true}]
+			: [
+					{key: 'y', commandOrControl: true},
+					{key: 'z', commandOrControl: true, shift: true},
+				],
+	);
+});
 
 test('matches all shortcut modifiers exactly', () => {
 	expect(
