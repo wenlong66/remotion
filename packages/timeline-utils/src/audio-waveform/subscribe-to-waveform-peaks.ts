@@ -1,8 +1,10 @@
+import type {InputAudioTrack} from 'mediabunny';
 import type {
 	AudioWaveformWorkerLoadMessage,
 	AudioWaveformWorkerOutgoingMessage,
 } from './audio-waveform-worker-types';
 import {TARGET_SAMPLE_RATE} from './constants';
+import {getWaveformCacheKey} from './get-waveform-cache-key';
 import {type WaveformResult, loadWaveformPeaks} from './load-waveform-peaks';
 import {makeAudioWaveformWorker} from './make-audio-waveform-worker';
 
@@ -16,7 +18,7 @@ type WaveformPeaksListener = {
 };
 
 type InFlightLoad = {
-	readonly src: string;
+	readonly src: string | InputAudioTrack;
 	readonly cacheKey: string;
 	readonly waveformSampleRate: number;
 	readonly listeners: Set<WaveformPeaksListener>;
@@ -159,7 +161,7 @@ export const subscribeToWaveformPeaks = ({
 	onPeaks,
 	onError,
 }: {
-	readonly src: string;
+	readonly src: string | InputAudioTrack;
 	readonly waveformSampleRate?: number;
 	readonly onPeaks: (
 		peaks: Float32Array,
@@ -168,7 +170,7 @@ export const subscribeToWaveformPeaks = ({
 	) => void;
 	readonly onError: (error: Error) => void;
 }): (() => void) => {
-	const cacheKey = `${waveformSampleRate}:${src}`;
+	const cacheKey = getWaveformCacheKey(src, waveformSampleRate);
 	const cached = peaksCache.get(cacheKey);
 	if (cached) {
 		onPeaks(cached.peaks, true, cached.averageVolume);
@@ -199,8 +201,8 @@ export const subscribeToWaveformPeaks = ({
 	};
 	inFlightByCacheKey.set(cacheKey, load);
 
-	const workerInstance = getOrCreateWorker();
-	if (workerInstance) {
+	const workerInstance = typeof src === 'string' ? getOrCreateWorker() : null;
+	if (workerInstance && typeof src === 'string') {
 		const requestId = nextRequestId++;
 		load.requestId = requestId;
 		inFlightByRequestId.set(requestId, load);

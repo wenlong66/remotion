@@ -1,6 +1,6 @@
 import {
 	formatAverageAudioVolume,
-	getAverageAudioVolume,
+	subscribeToWaveformPeaks,
 } from '@remotion/timeline-utils';
 import type {InputAudioTrack} from 'mediabunny';
 import {useEffect, useState} from 'react';
@@ -11,20 +11,16 @@ export const AudioVolumeRow: React.FC<{readonly track: InputAudioTrack}> = ({
 }) => {
 	const [value, setValue] = useState<string | null>(null);
 	useEffect(() => {
-		const controller = new AbortController();
 		setValue('Calculating…');
-		getAverageAudioVolume({track, signal: controller.signal})
-			.then((volume) => {
-				if (!controller.signal.aborted) {
-					setValue(formatAverageAudioVolume(volume));
+		return subscribeToWaveformPeaks({
+			src: track,
+			onPeaks: (_peaks, final, averageVolume) => {
+				if (final) {
+					setValue(formatAverageAudioVolume(averageVolume));
 				}
-			})
-			.catch(() => {
-				if (!controller.signal.aborted) {
-					setValue('Unavailable');
-				}
-			});
-		return () => controller.abort();
+			},
+			onError: () => setValue('Unavailable'),
+		});
 	}, [track]);
 
 	return (

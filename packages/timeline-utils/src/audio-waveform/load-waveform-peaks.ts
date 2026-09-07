@@ -1,5 +1,7 @@
+import type {InputAudioTrack} from 'mediabunny';
 import {ALL_FORMATS, AudioSampleSink, Input, UrlSource} from 'mediabunny';
 import {TARGET_SAMPLE_RATE} from './constants';
+import {getWaveformCacheKey} from './get-waveform-cache-key';
 import {getAudioSampleStartFrameAtTimelineZero} from './trim-audio-sample-before-zero';
 import {
 	createWaveformPeakProcessor,
@@ -31,7 +33,7 @@ type LoadWaveformPeaksOptions = {
 };
 
 export async function loadWaveformPeaks(
-	url: string,
+	src: string | InputAudioTrack,
 	signal: AbortSignal,
 	options?: LoadWaveformPeaksOptions,
 ): Promise<WaveformResult> {
@@ -40,7 +42,7 @@ export async function loadWaveformPeaks(
 		throw new Error('The waveform sample rate must be a positive number.');
 	}
 
-	const cacheKey = `${waveformSampleRate}:${url}`;
+	const cacheKey = getWaveformCacheKey(src, waveformSampleRate);
 	const cached = peaksCache.get(cacheKey);
 	if (cached) {
 		emitWaveformProgress({
@@ -54,13 +56,14 @@ export async function loadWaveformPeaks(
 		return cached;
 	}
 
-	const input = new Input({
-		formats: ALL_FORMATS,
-		source: new UrlSource(url),
-	});
+	const input =
+		typeof src === 'string'
+			? new Input({formats: ALL_FORMATS, source: new UrlSource(src)})
+			: null;
 
 	try {
-		const audioTrack = await input.getPrimaryAudioTrack();
+		const audioTrack =
+			typeof src === 'string' ? await input!.getPrimaryAudioTrack() : src;
 		if (!audioTrack) {
 			return {peaks: new Float32Array(0), averageVolume: null};
 		}
@@ -68,14 +71,14 @@ export async function loadWaveformPeaks(
 		if (await audioTrack.isLive()) {
 			throw new Error(
 				'Live streams are not currently supported by Remotion. Sorry! Source: ' +
-					url,
+					(typeof src === 'string' ? src : `audio track ${src.id}`),
 			);
 		}
 
 		if (await audioTrack.isRelativeToUnixEpoch()) {
 			throw new Error(
 				'Streams with UNIX timestamps are not currently supported by Remotion. Sorry! Source: ' +
-					url,
+					(typeof src === 'string' ? src : `audio track ${src.id}`),
 			);
 		}
 
@@ -147,6 +150,6 @@ export async function loadWaveformPeaks(
 		peaksCache.set(cacheKey, result);
 		return result;
 	} finally {
-		input.dispose();
+		input?.dispose();
 	}
 }
