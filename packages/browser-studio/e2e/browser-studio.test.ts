@@ -1307,9 +1307,10 @@ test('clears hover backgrounds even if pointer leave events are lost', async ({
 	const neutralArea = studio.locator('[data-sidebar-toggle="right"]');
 
 	await addSolid.click();
-	const solid = studio.getByText('<Solid>', {exact: true});
+	const solid = studio.locator('[data-timeline-marquee-item][title="<Solid>"]');
 	await expect(solid).toBeVisible();
 	await expect(studio.locator('svg[viewBox="0 0 24 16"]')).toBeVisible();
+	await studio.locator('body').press('Escape');
 	await solid.hover();
 	const hoveredOutline = studio.locator(
 		'polygon[data-remotion-studio-selected-outline-key]',
