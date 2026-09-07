@@ -954,7 +954,6 @@ const sidebars: SidebarsConfig = {
 			items: [
 				'video-matting/can-use-video-matting',
 				'video-matting/get-available-video-matting-models',
-				'video-matting/video-matting-models',
 				'video-matting/is-video-matting-model-cached',
 				'video-matting/load-video-matting-model',
 				'video-matting/separate-video-layers',

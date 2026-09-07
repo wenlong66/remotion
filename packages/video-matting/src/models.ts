@@ -1,4 +1,4 @@
-export const VIDEO_MATTING_MODELS = ['modnet', 'ben2-base'] as const;
+const VIDEO_MATTING_MODELS = ['modnet', 'ben2-base'] as const;
 
 export type VideoMattingModel = (typeof VIDEO_MATTING_MODELS)[number];
 

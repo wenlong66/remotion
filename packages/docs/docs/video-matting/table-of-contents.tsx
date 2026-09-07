@@ -13,10 +13,6 @@ export const TableOfContents: React.FC = () => {
 				<strong>getAvailableVideoMattingModels()</strong>
 				<div>List models and their download sizes</div>
 			</TOCItem>
-			<TOCItem link="/docs/video-matting/video-matting-models">
-				<strong>VIDEO_MATTING_MODELS</strong>
-				<div>Model names supported by the package</div>
-			</TOCItem>
 			<TOCItem link="/docs/video-matting/is-video-matting-model-cached">
 				<strong>isVideoMattingModelCached()</strong>
 				<div>Check whether a model is downloaded</div>

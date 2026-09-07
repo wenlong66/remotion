@@ -8517,15 +8517,6 @@ export const articles = [
 		slug: 'video-matting/separate-video-layers',
 	},
 	{
-		id: 'video-matting/video-matting-models',
-		title: 'VIDEO_MATTING_MODELS',
-		relativePath: 'docs/video-matting/video-matting-models.mdx',
-		compId: 'articles-docs-video-matting-video-matting-models',
-		crumb: '@remotion/video-matting',
-		noAi: false,
-		slug: 'video-matting/video-matting-models',
-	},
-	{
 		id: 'video-tags',
 		title: 'Comparison of video tags',
 		relativePath: 'docs/video-tags.mdx',

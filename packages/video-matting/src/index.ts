@@ -19,7 +19,7 @@ export type {
 } from './load-video-matting-model';
 export {isVideoMattingModelCached} from './is-video-matting-model-cached';
 export type {IsVideoMattingModelCachedOptions} from './is-video-matting-model-cached';
-export {getAvailableVideoMattingModels, VIDEO_MATTING_MODELS} from './models';
+export {getAvailableVideoMattingModels} from './models';
 export type {VideoMattingModel, VideoMattingModelInfo} from './models';
 export type {
 	VideoLayerOutput,
