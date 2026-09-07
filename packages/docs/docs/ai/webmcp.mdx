@@ -43,24 +43,6 @@ The shape of inputs and outputs is not currently stable.
 
 Tools that modify the timeline, playback or guides require a composition to be open.
 
-### `currentContent`
-
-Tool responses identify the content open in the canvas using `currentContent`. It is `null` when no content is open. Browser-rendered outputs include metadata without the blob itself.
-
-```ts title="CurrentContent"
-type CurrentContent =
-  | {type: 'composition'; compositionId: string}
-  | {type: 'asset'; asset: string}
-  | {type: 'output'; path: string}
-  | {
-      type: 'output-blob';
-      displayName: string;
-      width: number;
-      height: number;
-      sizeInBytes: number;
-    };
-```
-
 ### `restart_studio`<AvailableFrom v="4.0.521" />
 
 Restarts the Studio server using [`restartStudio()`](/docs/studio/restart-studio). Requires a writable Studio with a running server. No composition needs to be open. The browser temporarily disconnects and reconnects when Studio is ready.
