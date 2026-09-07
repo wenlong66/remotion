@@ -17,10 +17,6 @@ export const TableOfContents: React.FC = () => {
 				<strong>VIDEO_MATTING_MODELS</strong>
 				<div>Model names supported by the package</div>
 			</TOCItem>
-			<TOCItem link="/docs/video-matting/clear-stale-video-matting-models">
-				<strong>clearStaleVideoMattingModels()</strong>
-				<div>Remove models discontinued by newer versions</div>
-			</TOCItem>
 			<TOCItem link="/docs/video-matting/is-video-matting-model-cached">
 				<strong>isVideoMattingModelCached()</strong>
 				<div>Check whether a model is downloaded</div>

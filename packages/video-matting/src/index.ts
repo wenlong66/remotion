@@ -6,7 +6,6 @@ export type {
 	CanUseVideoMattingOptions,
 	CanUseVideoMattingResult,
 } from './can-use-video-matting';
-export {clearStaleVideoMattingModels} from './clear-stale-video-matting-models';
 export {
 	disposeVideoMattingModel,
 	loadVideoMattingModel,

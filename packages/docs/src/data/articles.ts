@@ -8463,15 +8463,6 @@ export const articles = [
 		slug: 'video-matting/can-use-video-matting',
 	},
 	{
-		id: 'video-matting/clear-stale-video-matting-models',
-		title: 'clearStaleVideoMattingModels()',
-		relativePath: 'docs/video-matting/clear-stale-video-matting-models.mdx',
-		compId: 'articles-docs-video-matting-clear-stale-video-matting-models',
-		crumb: '@remotion/video-matting',
-		noAi: false,
-		slug: 'video-matting/clear-stale-video-matting-models',
-	},
-	{
 		id: 'video-matting/dispose-video-matting-model',
 		title: 'disposeVideoMattingModel()',
 		relativePath: 'docs/video-matting/dispose-video-matting-model.mdx',
