@@ -149,6 +149,62 @@ mock.module('@huggingface/transformers', () => ({
 	},
 }));
 
+test('removes legacy Hugging Face Whisper entries from the shared browser cache', async () => {
+	const originalCaches = Object.getOwnPropertyDescriptor(globalThis, 'caches');
+	const cacheEnvironment =
+		transformersEnvironment as typeof transformersEnvironment & {
+			cacheKey: string;
+		};
+	cacheEnvironment.cacheKey = 'custom-transformers-cache';
+	const legacyTiny = new Request(
+		'https://huggingface.co/onnx-community/whisper-tiny_timestamped/resolve/main/config.json',
+	);
+	const legacySmallModel = new Request(
+		'https://huggingface.co/onnx-community/whisper-small_timestamped/resolve/main/onnx/encoder_model.onnx',
+	);
+	const currentTiny = new Request(
+		'https://remotion.media/models/whisper-tiny_timestamped-v1/config.json',
+	);
+	const unrelatedModel = new Request(
+		'https://huggingface.co/onnx-community/background-removal/resolve/main/config.json',
+	);
+	const deleted: string[] = [];
+	Object.defineProperty(globalThis, 'caches', {
+		configurable: true,
+		value: {
+			open: (cacheKey: string) => {
+				expect(cacheKey).toBe('custom-transformers-cache');
+				return Promise.resolve({
+					delete: (request: Request) => {
+						deleted.push(request.url);
+						return Promise.resolve(true);
+					},
+					keys: () =>
+						Promise.resolve([
+							legacyTiny,
+							legacySmallModel,
+							currentTiny,
+							unrelatedModel,
+						]),
+				});
+			},
+		} as unknown as CacheStorage,
+	});
+
+	try {
+		const {clearStaleModels} = await import('../index');
+		await clearStaleModels();
+		expect(deleted).toEqual([legacyTiny.url, legacySmallModel.url]);
+	} finally {
+		Reflect.deleteProperty(cacheEnvironment, 'cacheKey');
+		if (originalCaches) {
+			Object.defineProperty(globalThis, 'caches', originalCaches);
+		} else {
+			Reflect.deleteProperty(globalThis, 'caches');
+		}
+	}
+});
+
 test('transcribes with word timestamps using WebGPU', async () => {
 	const api = await import('../index');
 	const {

@@ -44,7 +44,7 @@ Model files are downloaded from `remotion.media`.
 
 `@remotion/whisper-webgpu` temporarily sets `env.remoteHost` while loading a model and restores it afterwards. This keeps the shared Transformers.js runtime available to other AI workflows. If your site uses a Content Security Policy, allow `https://remotion.media` in `connect-src`.
 
-Versions before 4.0.522 downloaded models from Hugging Face. After upgrading, the browser downloads a previously cached model once more because the download URL, and therefore its cache key, has changed. With the default Transformers.js cache settings, subsequent loads use the new cached copy.
+Versions before 4.0.522 downloaded models from Hugging Face. After upgrading, the browser downloads a previously cached model once more because the download URL, and therefore its cache key, has changed. Call [`clearStaleModels()`](/docs/whisper-webgpu/clear-stale-models) to remove the old Hugging Face cache entries. With the default Transformers.js cache settings, subsequent loads use the new cached copy.
 
 ## APIs
 
