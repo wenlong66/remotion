@@ -19,7 +19,10 @@ import {calculateTimeline} from '../../helpers/calculate-timeline';
 import {StudioServerConnectionCtx} from '../../helpers/client-id';
 import {TRANSPARENT} from '../../helpers/colors';
 import type {SequenceNodePathInfo} from '../../helpers/get-timeline-sequence-sort-key';
-import {startCapturedPointerSession} from '../../helpers/pointer-session';
+import {
+	startCapturedPointerSession,
+	startDeferredCapturedPointerSession,
+} from '../../helpers/pointer-session';
 import {TIMELINE_PADDING} from '../../helpers/timeline-layout';
 import {EditorSnappingContext} from '../../state/editor-snapping';
 import {
@@ -1635,12 +1638,10 @@ export const useTimelineSequenceFromDrag = ({
 			document.body.style.webkitUserSelect = 'none';
 			// Register before React commits so no pointer move can arrive before
 			// the global session listeners exist.
-			stopPointerSessionRef.current = startCapturedPointerSession({
+			stopPointerSessionRef.current = startDeferredCapturedPointerSession({
 				event: e.nativeEvent,
-				// The bar is removed when it leaves the visible timeline. Capture on
-				// a stable element so the move continues until the pointer is released.
 				captureTarget: e.currentTarget.ownerDocument.body,
-				onMove: (moveEvent) => {
+				onMove: (moveEvent, capturePointer) => {
 					const dragState = dragStateRef.current;
 					if (!dragState) {
 						return;
@@ -1656,6 +1657,10 @@ export const useTimelineSequenceFromDrag = ({
 					});
 					dragState.latestDeltaFrames = deltaFrames;
 					if (deltaFrames !== 0) {
+						// The bar can be removed when it leaves the visible timeline.
+						// Capture only after a real drag starts so clicks and double-clicks
+						// remain targeted at the bar.
+						capturePointer();
 						dragState.didMove = true;
 					}
 
