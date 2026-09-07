@@ -108,6 +108,7 @@ test('refreshes prop statuses for inserted and in-place updated nodes', () => {
 
 	queueSequenceNodePathMutation({
 		mutationId: 'inserted-runtime-path-test',
+		timelineSelection: null,
 		files: [
 			{
 				absolutePath,
