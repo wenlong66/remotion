@@ -39,20 +39,6 @@ The model is downloaded on the first call and cached by the browser. Call [`load
 
 Model files are downloaded from immutable paths on `remotion.media`. They are byte-identical mirrors of files from pinned upstream Hugging Face revisions. The public `modelId` metadata identifies the upstream source for provenance; it is not the download location.
 
-## Layer order
-
-The base is an opaque copy of the input video. The foreground contains the detected subject and transparent pixels everywhere else.
-
-Stack the layers in this order:
-
-1. Base
-2. Inserted content, such as text or graphics
-3. Foreground
-
-The base intentionally still contains the subject. The foreground draws it over the inserted content, making the content appear behind the subject. Video matting does not reconstruct scenery hidden by the subject.
-
-Audio is included in the base by default and omitted from the foreground, so stacking both layers plays it once.
-
 ## APIs
 
 <TableOfContents />
