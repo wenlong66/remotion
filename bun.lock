@@ -832,7 +832,6 @@
         "@remotion/tailwind-v4": "workspace:*",
         "@remotion/three": "workspace:*",
         "@remotion/transitions": "workspace:*",
-        "@remotion/video-matting": "workspace:*",
         "@remotion/webcodecs": "workspace:*",
         "@remotion/whisper-web": "workspace:*",
         "@remotion/whisper-webgpu": "workspace:*",
