@@ -1,3 +1,5 @@
+import {REACT_REFRESH_FINISHED_EVENT} from '@remotion/studio-shared';
+
 export const browserStudioVirtualFilePaths = {
 	browserRequireShim: '/__remotion_browser_studio__/browser-require-shim.js',
 	reactRefreshEntry: '/__remotion_browser_studio__/react-refresh-entry.js',
@@ -38,9 +40,7 @@ const getInjectedReactRefreshFiles = () => {
 	return __BROWSER_STUDIO_REACT_REFRESH_FILES__;
 };
 
-const notifyOnRefresh = `import {REACT_REFRESH_FINISHED_EVENT} from '@remotion/studio-shared';
-
-const RemotionRefreshRuntime = require('react-refresh/runtime');
+const notifyOnRefresh = `const RemotionRefreshRuntime = require('react-refresh/runtime');
 RemotionRefreshRuntime.__remotionReactRefreshWrapped ??= null;
 
 if (RemotionRefreshRuntime.__remotionReactRefreshWrapped === null) {
@@ -49,7 +49,7 @@ if (RemotionRefreshRuntime.__remotionReactRefreshWrapped === null) {
   RemotionRefreshRuntime.performReactRefresh = () => {
     const result = originalPerformReactRefresh();
     if (result !== null) {
-      window.dispatchEvent(new Event(REACT_REFRESH_FINISHED_EVENT));
+      window.dispatchEvent(new Event(${JSON.stringify(REACT_REFRESH_FINISHED_EVENT)}));
     }
 
     return result;

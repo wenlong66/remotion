@@ -335,7 +335,9 @@ test('loads Browser Studio, opens external links, and can add, delete, and dupli
 			await expect(inspector).toBeVisible();
 			await inspector.click();
 			await studio.getByRole('button', {name: 'Add Solid'}).click();
-			const solid = studio.getByText('<Solid>', {exact: true});
+			const solid = studio.locator(
+				'[data-timeline-marquee-item][title="<Solid>"]',
+			);
 			await expect(solid).toBeVisible();
 			await expect(studio.locator('svg[viewBox="0 0 24 16"]')).toBeVisible();
 			await solid.click();
@@ -1113,7 +1115,9 @@ export const BrowserElement = () => <Rect width={320} height={180} fill="red" />
 		};
 	});
 	expect(versions.installed).toBe(versions.remotion);
-	await expect(studio.getByText('Browser Element')).toBeVisible();
+	await expect(
+		studio.getByText('Browser Element', {exact: true}),
+	).toBeVisible();
 });
 
 test('confirms and imports an Element payload from the URL fragment', async ({
