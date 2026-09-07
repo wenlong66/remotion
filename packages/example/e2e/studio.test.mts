@@ -4268,4 +4268,55 @@ export const SequenceShiftRepro = () => {
 		);
 		expect(shortVideoTag).toContain('from={45}');
 	});
+
+	test('should select an added composition before the codemod response arrives', async ({
+		page,
+	}) => {
+		await page.goto(`${STUDIO_URL}/effect-keyframe-e2e`);
+		await expect(
+			page.getByRole('button', {name: '0', exact: true}),
+		).toBeVisible({timeout: 15_000});
+		if (!(await page.getByRole('button', {name: 'Inspector'}).isVisible())) {
+			await page.locator('[data-sidebar-toggle="right"]').click();
+		}
+
+		let releaseResponse = () => undefined;
+		const responseCanBeReleased = new Promise<void>((resolve) => {
+			releaseResponse = resolve;
+		});
+		let markResponseAsHeld = () => undefined;
+		const responseIsHeld = new Promise<void>((resolve) => {
+			markResponseAsHeld = resolve;
+		});
+		let markResponseAsReleased = () => undefined;
+		const responseIsReleased = new Promise<void>((resolve) => {
+			markResponseAsReleased = resolve;
+		});
+		await page.route('**/api/insert-jsx-element', async (route) => {
+			const response = await route.fetch();
+			markResponseAsHeld();
+			await responseCanBeReleased;
+			await route.fulfill({response});
+			markResponseAsReleased();
+		});
+
+		try {
+			await page.getByRole('button', {name: 'Add composition...'}).click();
+			await page
+				.getByPlaceholder('Search compositions...')
+				.fill('package-absolute-fill');
+			await page.keyboard.press('Enter');
+			await responseIsHeld;
+
+			await expect(
+				page.locator(
+					'[data-timeline-marquee-item][title="package-absolute-fill"]',
+				),
+			).toHaveCSS('opacity', '1', {timeout: 30_000});
+		} finally {
+			releaseResponse();
+			await responseIsReleased;
+			await page.unroute('**/api/insert-jsx-element');
+		}
+	});
 });

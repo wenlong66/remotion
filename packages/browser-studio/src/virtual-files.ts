@@ -38,6 +38,25 @@ const getInjectedReactRefreshFiles = () => {
 	return __BROWSER_STUDIO_REACT_REFRESH_FILES__;
 };
 
+const notifyOnRefresh = `import {REACT_REFRESH_FINISHED_EVENT} from '@remotion/studio-shared';
+
+const RemotionRefreshRuntime = require('react-refresh/runtime');
+RemotionRefreshRuntime.__remotionReactRefreshWrapped ??= null;
+
+if (RemotionRefreshRuntime.__remotionReactRefreshWrapped === null) {
+  const originalPerformReactRefresh = RemotionRefreshRuntime.performReactRefresh;
+  RemotionRefreshRuntime.__remotionReactRefreshWrapped = true;
+  RemotionRefreshRuntime.performReactRefresh = () => {
+    const result = originalPerformReactRefresh();
+    if (result !== null) {
+      window.dispatchEvent(new Event(REACT_REFRESH_FINISHED_EVENT));
+    }
+
+    return result;
+  };
+}
+`;
+
 const setupSequenceStackTraces = `import React from 'react';
 import * as RefreshRuntime from 'react-refresh/runtime';
 import {Internals} from 'remotion';
@@ -167,7 +186,7 @@ export const getBrowserStudioVirtualFiles = (): Record<string, string> => {
 
 	return {
 		[browserStudioVirtualFilePaths.browserRequireShim]: browserRequireShim,
-		[browserStudioVirtualFilePaths.reactRefreshEntry]: reactRefreshFiles.entry,
+		[browserStudioVirtualFilePaths.reactRefreshEntry]: `${reactRefreshFiles.entry}\n${notifyOnRefresh}`,
 		[browserStudioVirtualFilePaths.reactRefreshRuntime]:
 			reactRefreshFiles.runtime,
 		[browserStudioVirtualFilePaths.reactRefreshUtils]: reactRefreshFiles.utils,
