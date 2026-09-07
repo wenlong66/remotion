@@ -1853,7 +1853,8 @@ test.describe('visual mode', () => {
 				name: 'Actions for Play / Pause',
 			});
 			await expect(playPauseActions).toBeVisible();
-			await playPauseShortcut.click();
+			await playPauseActions.click();
+			await page.getByText('Remap shortcut', {exact: true}).click();
 			await expect(playPauseShortcut).toContainText('Press shortcut');
 			await page.keyboard.press('q');
 			await expect

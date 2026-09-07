@@ -283,10 +283,31 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 											shortcut.actionId,
 											configuredShortcuts,
 										).map(formatKeyboardShortcut);
+							const shortcutButtonId =
+								shortcut.actionId === null
+									? null
+									: `keyboard-shortcut-${shortcut.actionId}`;
 							const shortcutMenuItems: ComboboxValue[] =
 								shortcut.actionId === null
 									? []
 									: [
+											{
+												id: 'remap-shortcut',
+												keyHint: null,
+												label: 'Remap shortcut',
+												leftItem: null,
+												onClick: () => {
+													setError(null);
+													setRecording(shortcut.actionId);
+													requestAnimationFrame(() => {
+														document.getElementById(shortcutButtonId!)?.focus();
+													});
+												},
+												quickSwitcherLabel: null,
+												subMenu: null,
+												type: 'item',
+												value: 'remap-shortcut',
+											},
 											...(configured
 												? [
 														{
@@ -355,6 +376,7 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 										<>
 											<span style={shortcutCell}>
 												<button
+													id={shortcutButtonId!}
 													type="button"
 													style={chordButton}
 													aria-label={`Change shortcut for ${shortcut.action}`}
