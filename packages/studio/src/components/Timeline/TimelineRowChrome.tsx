@@ -148,12 +148,8 @@ export const TimelineRowChrome: React.FC<{
 		[onSelect, selected],
 	);
 
-	const onDoubleClickIfNotInteractive = useCallback(
+	const performDoubleClickIfNotInteractive = useCallback(
 		(e: React.MouseEvent<HTMLDivElement>) => {
-			if (!doubleClickTracker.doubleClickWasPrimary()) {
-				return;
-			}
-
 			const {target} = e;
 			if (
 				target instanceof Element &&
@@ -169,7 +165,27 @@ export const TimelineRowChrome: React.FC<{
 
 			onDoubleClick?.(e);
 		},
-		[doubleClickTracker, onDoubleClick],
+		[onDoubleClick],
+	);
+	const onClick = useCallback(
+		(e: React.MouseEvent<HTMLDivElement>) => {
+			if (!doubleClickTracker.recoverDoubleClick(e.detail)) {
+				return;
+			}
+
+			performDoubleClickIfNotInteractive(e);
+		},
+		[doubleClickTracker, performDoubleClickIfNotInteractive],
+	);
+	const onDoubleClickIfNotInteractive = useCallback(
+		(e: React.MouseEvent<HTMLDivElement>) => {
+			if (!doubleClickTracker.acceptDoubleClick()) {
+				return;
+			}
+
+			performDoubleClickIfNotInteractive(e);
+		},
+		[doubleClickTracker, performDoubleClickIfNotInteractive],
 	);
 
 	const highlightBackground = getTimelineRowHighlightBackground({
@@ -240,6 +256,7 @@ export const TimelineRowChrome: React.FC<{
 				onDrop={onDrop}
 				onPointerDownCapture={doubleClickTracker.beginPointerGesture}
 				onPointerDown={selectable ? onPointerDown : undefined}
+				onClick={onClick}
 				onContextMenu={selectable ? onContextMenu : undefined}
 				onDoubleClick={onDoubleClickIfNotInteractive}
 				onPointerEnter={onPointerEnter}
@@ -257,6 +274,7 @@ export const TimelineRowChrome: React.FC<{
 			onDrop={onDrop}
 			onPointerDownCapture={doubleClickTracker.beginPointerGesture}
 			onPointerDown={selectable ? onPointerDown : undefined}
+			onClick={onClick}
 			onContextMenu={selectable ? onContextMenu : undefined}
 			onDoubleClick={onDoubleClickIfNotInteractive}
 			onPointerEnter={onPointerEnter}

@@ -128,6 +128,10 @@ export const E2eTestRoot = () => <Composition id="timeline-edges" component={Lay
 			buttons: 0,
 			pointerId: 1,
 		});
+		await movableLayer.dispatchEvent('dblclick', {button: 0, detail: 2});
+		await page.waitForTimeout(100);
+		expect(openInEditorRequests).toHaveLength(0);
+
 		await movableLayer.dispatchEvent('pointerdown', {
 			button: 0,
 			buttons: 1,
@@ -138,12 +142,23 @@ export const E2eTestRoot = () => <Composition id="timeline-edges" component={Lay
 			buttons: 0,
 			pointerId: 1,
 		});
-		await movableLayer.dispatchEvent('dblclick', {button: 0, detail: 2});
-		await page.waitForTimeout(100);
+		await movableLayer.dispatchEvent('click', {button: 0, detail: 3});
 		expect(openInEditorRequests).toHaveLength(0);
+		await movableLayer.dispatchEvent('pointerdown', {
+			button: 0,
+			buttons: 1,
+			pointerId: 1,
+		});
+		await movableLayer.dispatchEvent('pointerup', {
+			button: 0,
+			buttons: 0,
+			pointerId: 1,
+		});
+		await movableLayer.dispatchEvent('click', {button: 0, detail: 4});
+		await expect.poll(() => openInEditorRequests.length).toBe(1);
 
 		await movableLayer.dblclick({position: {x: 30, y: 10}});
-		await expect.poll(() => openInEditorRequests.length).toBe(1);
+		await expect.poll(() => openInEditorRequests.length).toBe(2);
 
 		const rightEdgeLayer = page.locator(
 			'[data-timeline-marquee-item][title="Explicit fill cutoff"]',

@@ -191,6 +191,7 @@ const TimelineSequenceCurrentFrame: React.FC<{
 		e: React.PointerEvent<HTMLDivElement>,
 	) => void;
 	readonly onPointerDownCapture: React.PointerEventHandler<HTMLDivElement>;
+	readonly onClick: React.MouseEventHandler<HTMLDivElement> | null;
 	readonly onDoubleClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }> = ({
 	s,
@@ -209,6 +210,7 @@ const TimelineSequenceCurrentFrame: React.FC<{
 	frozenFrame,
 	onMoveDragPointerDown,
 	onPointerDownCapture,
+	onClick,
 	onDoubleClick,
 }) => {
 	const ref = useRef<HTMLDivElement>(null);
@@ -344,6 +346,7 @@ const TimelineSequenceCurrentFrame: React.FC<{
 			title={s.displayName}
 			onPointerDownCapture={onPointerDownCapture}
 			onPointerDown={selectable ? onPointerDown : undefined}
+			onClick={onClick ?? undefined}
 			onDoubleClick={onDoubleClick}
 		>
 			{negativeStart ? (
@@ -534,13 +537,10 @@ const TimelineSequenceInner: React.FC<{
 			item.type === 'sequence' ? [item.nodePathInfo] : [],
 		);
 	}, [selected, selectedItems]);
-	const onSequenceDoubleClick = useCallback(
+	const performSequenceDoubleClick = useCallback(
 		(e: React.MouseEvent<HTMLDivElement>) => {
 			if (isTimelineSelectionModifierEvent(e)) {
 				e.stopPropagation();
-				return;
-			}
-			if (!dragAwareDoubleClick.doubleClickWasPrimary()) {
 				return;
 			}
 
@@ -581,6 +581,26 @@ const TimelineSequenceInner: React.FC<{
 			selectComposition,
 			sequenceFrameOffset,
 		],
+	);
+	const onSequenceClick = useCallback(
+		(e: React.MouseEvent<HTMLDivElement>) => {
+			if (!dragAwareDoubleClick.recoverDoubleClick(e.detail)) {
+				return;
+			}
+
+			performSequenceDoubleClick(e);
+		},
+		[dragAwareDoubleClick, performSequenceDoubleClick],
+	);
+	const onSequenceDoubleClick = useCallback(
+		(e: React.MouseEvent<HTMLDivElement>) => {
+			if (!dragAwareDoubleClick.acceptDoubleClick()) {
+				return;
+			}
+
+			performSequenceDoubleClick(e);
+		},
+		[dragAwareDoubleClick, performSequenceDoubleClick],
 	);
 	const canHandleSequenceDoubleClick =
 		connectedCompositions.length === 1 || canOpenInEditor;
@@ -974,6 +994,7 @@ const TimelineSequenceInner: React.FC<{
 			frozenFrame={frozenFrame}
 			onMoveDragPointerDown={onMoveDragPointerDown}
 			onPointerDownCapture={dragAwareDoubleClick.beginPointerGesture}
+			onClick={canHandleSequenceDoubleClick ? onSequenceClick : null}
 			edgeDragHandles={
 				<>
 					{showLeftEdgeDragHandle &&
