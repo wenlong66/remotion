@@ -1842,6 +1842,27 @@ test.describe('visual mode', () => {
 			await expect(
 				dialog.getByRole('list', {name: 'Playback', exact: true}),
 			).toBeVisible();
+			const fixedShortcutRow = dialog
+				.getByRole('listitem')
+				.filter({hasText: '1 second back'});
+			const fixedShortcutBox = await fixedShortcutRow
+				.locator('kbd')
+				.last()
+				.boundingBox();
+			const fixedLabelBox = await fixedShortcutRow
+				.getByText('Fixed', {exact: true})
+				.boundingBox();
+			if (fixedShortcutBox === null || fixedLabelBox === null) {
+				throw new Error('Expected shortcut and Fixed label to have boxes');
+			}
+
+			expect(
+				Math.abs(
+					fixedShortcutBox.y +
+						fixedShortcutBox.height / 2 -
+						(fixedLabelBox.y + fixedLabelBox.height / 2),
+				),
+			).toBeLessThan(1);
 			const playPauseShortcut = dialog.getByRole('button', {
 				name: 'Change shortcut for Play / Pause',
 			});

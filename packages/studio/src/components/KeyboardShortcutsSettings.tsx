@@ -51,9 +51,9 @@ const shortcutSectionTitle: React.CSSProperties = {
 const shortcutRow: React.CSSProperties = {
 	alignItems: 'center',
 	borderBottom: BORDER_WHITE_ALPHA_12,
-	display: 'flex',
-	gap: 16,
-	justifyContent: 'space-between',
+	columnGap: 12,
+	display: 'grid',
+	gridTemplateColumns: 'minmax(0, 1fr) minmax(76px, max-content) 94px',
 	margin: '0 16px',
 	minHeight: 42,
 };
@@ -70,17 +70,26 @@ const actionName: React.CSSProperties = {
 	minWidth: 0,
 };
 
-const actions: React.CSSProperties = {
+const shortcutCell: React.CSSProperties = {
 	alignItems: 'center',
 	display: 'flex',
-	flexShrink: 0,
+	justifyContent: 'flex-end',
+	minWidth: 0,
+};
+
+const actionCell: React.CSSProperties = {
+	alignItems: 'center',
+	display: 'flex',
 	gap: 6,
+	justifyContent: 'flex-start',
+	whiteSpace: 'nowrap',
 };
 
 const chords: React.CSSProperties = {
 	alignItems: 'center',
 	display: 'flex',
 	gap: 6,
+	whiteSpace: 'nowrap',
 };
 
 const chord: React.CSSProperties = {
@@ -119,6 +128,12 @@ const smallButton: React.CSSProperties = {
 	border: 0,
 	color: LIGHT_TEXT,
 	cursor: 'pointer',
+	fontSize: 11,
+	padding: '4px',
+};
+
+const fixedLabel: React.CSSProperties = {
+	color: LIGHT_TEXT,
 	fontSize: 11,
 	padding: '4px',
 };
@@ -294,20 +309,25 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 									}
 								>
 									<span style={actionName}>{shortcut.action}</span>
-									<span style={actions}>
-										{shortcut.actionId === null || isBrowserStudio ? (
-											<span title={shortcut.fixedReason}>
+									{shortcut.actionId === null || isBrowserStudio ? (
+										<>
+											<span style={shortcutCell}>
 												<ShortcutChords values={shortcutValues} />
+											</span>
+											<span style={actionCell}>
 												{shortcut.actionId === null ? (
-													<span style={smallButton}>Fixed</span>
+													<span style={fixedLabel} title={shortcut.fixedReason}>
+														Fixed
+													</span>
 												) : null}
 											</span>
-										) : (
-											<>
+										</>
+									) : (
+										<>
+											<span style={shortcutCell}>
 												<button
 													type="button"
 													style={chordButton}
-													title="Click, then press a new shortcut"
 													aria-label={`Change shortcut for ${shortcut.action}`}
 													onClick={() => {
 														setError(null);
@@ -360,6 +380,8 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 														<ShortcutChords values={shortcutValues} />
 													)}
 												</button>
+											</span>
+											<span style={actionCell}>
 												{configured ? (
 													<button
 														type="button"
@@ -393,9 +415,9 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 														Disable
 													</button>
 												) : null}
-											</>
-										)}
-									</span>
+											</span>
+										</>
+									)}
 								</div>
 							);
 						})}
