@@ -242,6 +242,7 @@ test('keeps the selected sequence selected after its node path changes', () => {
 
 	queueSequenceNodePathMutation({
 		mutationId: 'reorder-selection-test',
+		timelineSelection: null,
 		files: [
 			{
 				absolutePath,
