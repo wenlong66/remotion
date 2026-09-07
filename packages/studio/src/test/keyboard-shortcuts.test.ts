@@ -4,6 +4,7 @@ import {
 	formatKeyboardShortcut,
 	formatKeyboardShortcutForAria,
 	keyboardEventMatchesShortcut,
+	keyboardShortcutsOverlap,
 } from '../components/keyboard-shortcuts';
 import {isMac} from '../helpers/is-mac';
 
@@ -35,7 +36,13 @@ test('includes main-row and numeric-keypad zoom-in shortcuts', () => {
 	]);
 });
 
-test('matches all shortcut modifiers exactly', () => {
+test('matches shortcut modifiers', () => {
+	expect(
+		keyboardEventMatchesShortcut({
+			event: event({altKey: true, key: 'a', shiftKey: true}),
+			shortcut: {key: 'a'},
+		}),
+	).toBe(true);
 	expect(
 		keyboardEventMatchesShortcut({
 			event: event(isMac ? {metaKey: true} : {ctrlKey: true}),
@@ -46,10 +53,22 @@ test('matches all shortcut modifiers exactly', () => {
 		keyboardEventMatchesShortcut({
 			event: event(
 				isMac
-					? {metaKey: true, shiftKey: true}
-					: {ctrlKey: true, shiftKey: true},
+					? {altKey: true, metaKey: true, shiftKey: true}
+					: {altKey: true, ctrlKey: true, shiftKey: true},
 			),
 			shortcut: {key: 'k', commandOrControl: true},
+		}),
+	).toBe(true);
+	expect(
+		keyboardEventMatchesShortcut({
+			event: event({key: 'k'}),
+			shortcut: {key: 'k', shift: true},
+		}),
+	).toBe(false);
+	expect(
+		keyboardEventMatchesShortcut({
+			event: event({key: 'k'}),
+			shortcut: {alt: true, key: 'k'},
 		}),
 	).toBe(false);
 	expect(
@@ -58,6 +77,18 @@ test('matches all shortcut modifiers exactly', () => {
 			shortcut: {key: 'Space'},
 		}),
 	).toBe(true);
+});
+
+test('detects overlapping shortcuts', () => {
+	expect(keyboardShortcutsOverlap({key: 'a'}, {key: 'A', shift: true})).toBe(
+		true,
+	);
+	expect(
+		keyboardShortcutsOverlap({alt: true, key: 'a'}, {key: 'a', shift: true}),
+	).toBe(true);
+	expect(
+		keyboardShortcutsOverlap({key: 'a'}, {commandOrControl: true, key: 'a'}),
+	).toBe(false);
 });
 
 test('formats a shortcut for display', () => {

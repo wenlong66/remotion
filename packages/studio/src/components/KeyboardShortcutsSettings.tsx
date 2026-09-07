@@ -25,6 +25,7 @@ import {
 	formatKeyboardShortcut,
 	getKeyboardShortcutsForAction,
 	keyboardShortcutGroups,
+	keyboardShortcutsOverlap,
 	shortcutFromKeyboardEvent,
 } from './keyboard-shortcuts';
 import {Spacing} from './layout';
@@ -417,7 +418,7 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 																		item.actionId,
 																		configuredShortcuts,
 																	).some((candidate) =>
-																		isSameShortcut(candidate, value),
+																		keyboardShortcutsOverlap(candidate, value),
 																	),
 															);
 														if (conflict) {

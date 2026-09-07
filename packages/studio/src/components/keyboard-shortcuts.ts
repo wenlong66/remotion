@@ -239,10 +239,17 @@ export const keyboardEventMatchesShortcut = ({
 		event.key.toLowerCase() === normalizeKey(value.key).toLowerCase() &&
 		commandOrControl === (value.commandOrControl ?? false) &&
 		(isMac ? !event.ctrlKey : !event.metaKey) &&
-		event.shiftKey === (value.shift ?? false) &&
-		event.altKey === (value.alt ?? false)
+		(!value.shift || event.shiftKey) &&
+		(!value.alt || event.altKey)
 	);
 };
+
+export const keyboardShortcutsOverlap = (
+	first: StudioKeyboardShortcut,
+	second: StudioKeyboardShortcut,
+) =>
+	first.key.toLowerCase() === second.key.toLowerCase() &&
+	(first.commandOrControl ?? false) === (second.commandOrControl ?? false);
 
 export const keyboardEventMatchesAction = (
 	event: KeyboardEvent,
