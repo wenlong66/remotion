@@ -2,15 +2,16 @@ import {CliInternals} from '@remotion/cli';
 import {BINARY_NAME} from '@remotion/lambda-client/constants';
 import type {LogLevel} from '@remotion/renderer';
 import {BrowserSafeApis} from '@remotion/renderer/client';
-import {COMPOSITIONS_COMMAND} from './commands/compositions';
-import {FUNCTIONS_COMMAND} from './commands/functions';
-import {POLICIES_COMMAND} from './commands/policies/policies';
-import {QUOTAS_COMMAND} from './commands/quotas';
-import {REGIONS_COMMAND} from './commands/regions';
-import {RENDER_COMMAND} from './commands/render/render';
-import {SITES_COMMAND} from './commands/sites';
-import {STILL_COMMAND} from './commands/still';
-import {Log} from './log';
+import {
+	COMPOSITIONS_COMMAND,
+	FUNCTIONS_COMMAND,
+	POLICIES_COMMAND,
+	QUOTAS_COMMAND,
+	REGIONS_COMMAND,
+	RENDER_COMMAND,
+	SITES_COMMAND,
+	STILL_COMMAND,
+} from './commands/command-names';
 
 const packagejson = require('../../package.json');
 const rendererOptions = Object.values(BrowserSafeApis.options);
@@ -489,7 +490,7 @@ export const getLambdaHelp = (selectedPath: readonly string[]) => {
 
 export const printHelp: PrintHelp = (selectedPath, logLevel) => {
 	if (selectedPath.length === 0) {
-		Log.info(
+		CliInternals.Log.info(
 			{indent: false, logLevel},
 			`${BINARY_NAME} ${
 				packagejson.version
@@ -499,6 +500,6 @@ export const printHelp: PrintHelp = (selectedPath, logLevel) => {
 
 	const lines = getLambdaHelp(selectedPath);
 	for (const line of selectedPath.length === 0 ? lines : lines.slice(1)) {
-		Log.info({indent: false, logLevel}, line);
+		CliInternals.Log.info({indent: false, logLevel}, line);
 	}
 };

@@ -7,20 +7,24 @@ export const tryPrintCloudrunHelp = (
 	args: string[],
 	logLevel: LogLevel,
 ) => {
+	let path: string;
 	try {
-		const path = require.resolve('@remotion/cloudrun', {
+		path = require.resolve('@remotion/cloudrun/internal/help', {
 			paths: [remotionRoot],
 		});
-		const {CloudrunInternals} = require(path);
-		if (typeof CloudrunInternals?.printHelp !== 'function') {
-			return false;
-		}
-
-		CloudrunInternals.printHelp(args, logLevel);
-		return true;
 	} catch {
 		return false;
 	}
+
+	const {printHelp} = require(path);
+	if (typeof printHelp !== 'function') {
+		throw new TypeError(
+			'@remotion/cloudrun/internal/help does not export printHelp',
+		);
+	}
+
+	printHelp(args, logLevel);
+	return true;
 };
 
 export const cloudrunCommand = async (

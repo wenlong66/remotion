@@ -7,20 +7,24 @@ export const tryPrintLambdaHelp = (
 	args: string[],
 	logLevel: LogLevel,
 ) => {
+	let path: string;
 	try {
-		const path = require.resolve('@remotion/lambda', {
+		path = require.resolve('@remotion/lambda/internal/help', {
 			paths: [remotionRoot],
 		});
-		const {LambdaInternals} = require(path);
-		if (typeof LambdaInternals?.printHelp !== 'function') {
-			return false;
-		}
-
-		LambdaInternals.printHelp(args, logLevel);
-		return true;
 	} catch {
 		return false;
 	}
+
+	const {printHelp} = require(path);
+	if (typeof printHelp !== 'function') {
+		throw new TypeError(
+			'@remotion/lambda/internal/help does not export printHelp',
+		);
+	}
+
+	printHelp(args, logLevel);
+	return true;
 };
 
 export const lambdaCommand = async (

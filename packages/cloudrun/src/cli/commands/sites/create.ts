@@ -27,7 +27,7 @@ import {Log} from '../../log';
 const {disableGitSourceOption, askAIOption, keyboardShortcutsOption} =
 	BrowserSafeApis.options;
 
-export const SITES_CREATE_SUBCOMMAND = 'create';
+export {SITES_CREATE_SUBCOMMAND} from '../command-names';
 
 export const sitesCreateSubcommand = async (
 	args: string[],

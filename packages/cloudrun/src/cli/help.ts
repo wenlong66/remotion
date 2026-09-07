@@ -1,22 +1,23 @@
 import {CliInternals} from '@remotion/cli';
 import type {LogLevel} from '@remotion/renderer';
 import {BrowserSafeApis} from '@remotion/renderer/client';
-import {BINARY_NAME} from '../shared/constants';
-import {PERMISSIONS_COMMAND} from './commands/permissions';
-import {REGIONS_COMMAND} from './commands/regions';
-import {RENDER_COMMAND} from './commands/render';
-import {SERVICES_COMMAND} from './commands/services';
-import {CLOUD_RUN_DEPLOY_SUBCOMMAND} from './commands/services/deploy';
-import {SERVICES_LS_SUBCOMMAND} from './commands/services/ls';
-import {SERVICES_RM_SUBCOMMAND} from './commands/services/rm';
-import {SERVICES_RMALL_SUBCOMMAND} from './commands/services/rmall';
-import {SITES_COMMAND} from './commands/sites';
-import {SITES_CREATE_SUBCOMMAND} from './commands/sites/create';
-import {SITES_LS_SUBCOMMAND} from './commands/sites/ls';
-import {SITES_RM_COMMAND} from './commands/sites/rm';
-import {SITES_RMALL_COMMAND} from './commands/sites/rmall';
-import {STILL_COMMAND} from './commands/still';
-import {Log} from './log';
+import {
+	CLOUD_RUN_DEPLOY_SUBCOMMAND,
+	CLOUDRUN_BINARY_NAME,
+	PERMISSIONS_COMMAND,
+	REGIONS_COMMAND,
+	RENDER_COMMAND,
+	SERVICES_COMMAND,
+	SERVICES_LS_SUBCOMMAND,
+	SERVICES_RM_SUBCOMMAND,
+	SERVICES_RMALL_SUBCOMMAND,
+	SITES_COMMAND,
+	SITES_CREATE_SUBCOMMAND,
+	SITES_LS_SUBCOMMAND,
+	SITES_RM_COMMAND,
+	SITES_RMALL_COMMAND,
+	STILL_COMMAND,
+} from './commands/command-names';
 
 const packagejson = require('../../package.json');
 
@@ -338,7 +339,7 @@ const commandHelp = [
 
 export const getCloudrunHelp = (selectedPath: readonly string[]) => {
 	return CliInternals.getCommandHelp({
-		binaryName: BINARY_NAME,
+		binaryName: CLOUDRUN_BINARY_NAME,
 		commands: commandHelp,
 		selectedPath,
 		rootDocumentation: 'https://www.remotion.dev/docs/cloudrun/cli',
@@ -350,9 +351,9 @@ export const printHelp = (
 	logLevel: LogLevel,
 ) => {
 	if (selectedPath.length === 0) {
-		Log.info(
+		CliInternals.Log.info(
 			{indent: false, logLevel},
-			`${BINARY_NAME} ${
+			`${CLOUDRUN_BINARY_NAME} ${
 				packagejson.version
 			} © ${new Date().getFullYear()} The Remotion developers`,
 		);
@@ -360,6 +361,6 @@ export const printHelp = (
 
 	const lines = getCloudrunHelp(selectedPath);
 	for (const line of selectedPath.length === 0 ? lines : lines.slice(1)) {
-		Log.info({indent: false, logLevel}, line);
+		CliInternals.Log.info({indent: false, logLevel}, line);
 	}
 };

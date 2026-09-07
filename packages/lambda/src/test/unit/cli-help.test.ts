@@ -4,6 +4,15 @@ import {mkdtempSync, readdirSync, rmSync, writeFileSync} from 'node:fs';
 import path from 'node:path';
 import {getLambdaHelp} from '../../cli/help';
 
+const exampleDirectory = path.join(
+	__dirname,
+	'..',
+	'..',
+	'..',
+	'..',
+	'example',
+);
+
 const commandHelpPages = [
 	{args: [], documentation: '/docs/lambda/cli', option: null},
 	{
@@ -154,15 +163,34 @@ test('defines help for every Lambda command', () => {
 	expect(policyHelp).toContain('--region <region>');
 });
 
-test('the Remotion CLI delegates Lambda help before loading config', () => {
-	const exampleDirectory = path.join(
-		__dirname,
-		'..',
-		'..',
-		'..',
-		'..',
-		'example',
+test('exposes a help-only package entry point', () => {
+	const result = spawnSync(
+		'node',
+		[
+			'-e',
+			`const help = require('@remotion/lambda/internal/help'); process.stdout.write(JSON.stringify({printHelp: typeof help.printHelp, hasRenderOptions: help.getLambdaHelp(['render']).join('\\n').includes('--frames-per-lambda <count>')}));`,
+		],
+		{
+			cwd: exampleDirectory,
+			encoding: 'utf8',
+			stdio: ['ignore', 'pipe', 'pipe'],
+			timeout: 10_000,
+		},
 	);
+
+	if (result.error) {
+		throw result.error;
+	}
+
+	expect(result.signal).toBeNull();
+	expect(result.status).toBe(0);
+	expect(JSON.parse(result.stdout)).toEqual({
+		printHelp: 'function',
+		hasRenderOptions: true,
+	});
+});
+
+test('the Remotion CLI delegates Lambda help before loading config', () => {
 	const temporaryDirectory = mkdtempSync(
 		path.join(exampleDirectory, '.tmp-lambda-cli-help-'),
 	);

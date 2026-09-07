@@ -4,6 +4,8 @@ import {mkdtempSync, readdirSync, rmSync, writeFileSync} from 'node:fs';
 import path from 'node:path';
 import {getCloudrunHelp} from '../cli/help';
 
+const exampleDirectory = path.join(__dirname, '..', '..', '..', 'example');
+
 const commandHelpPages = [
 	{args: [], documentation: '/docs/cloudrun/cli', option: null},
 	{
@@ -108,8 +110,34 @@ test('defines help for every Cloud Run command', () => {
 	expect(createSiteHelp).toContain('--disable-ask-ai');
 });
 
+test('exposes a help-only package entry point', () => {
+	const result = spawnSync(
+		'node',
+		[
+			'-e',
+			`const help = require('@remotion/cloudrun/internal/help'); process.stdout.write(JSON.stringify({printHelp: typeof help.printHelp, hasRenderOptions: help.getCloudrunHelp(['render']).join('\\n').includes('--service-name <service-name>')}));`,
+		],
+		{
+			cwd: exampleDirectory,
+			encoding: 'utf8',
+			stdio: ['ignore', 'pipe', 'pipe'],
+			timeout: 10_000,
+		},
+	);
+
+	if (result.error) {
+		throw result.error;
+	}
+
+	expect(result.signal).toBeNull();
+	expect(result.status).toBe(0);
+	expect(JSON.parse(result.stdout)).toEqual({
+		printHelp: 'function',
+		hasRenderOptions: true,
+	});
+});
+
 test('the Remotion CLI delegates Cloud Run help before loading config', () => {
-	const exampleDirectory = path.join(__dirname, '..', '..', '..', 'example');
 	const temporaryDirectory = mkdtempSync(
 		path.join(exampleDirectory, '.tmp-cloudrun-cli-help-'),
 	);
