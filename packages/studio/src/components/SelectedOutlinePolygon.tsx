@@ -515,7 +515,7 @@ const SelectedOutlinePolygonUnmemoized: React.FC<{
 	);
 	const onClick = React.useCallback(
 		(event: React.MouseEvent<SVGPolygonElement>) => {
-			if (!dragAwareDoubleClick.acceptClickAsDoubleClick(event.detail)) {
+			if (!dragAwareDoubleClick.acceptClickAsDoubleClick(event)) {
 				return;
 			}
 

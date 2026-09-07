@@ -169,7 +169,7 @@ export const TimelineRowChrome: React.FC<{
 	);
 	const onClick = useCallback(
 		(e: React.MouseEvent<HTMLDivElement>) => {
-			if (!doubleClickTracker.acceptClickAsDoubleClick(e.detail)) {
+			if (!doubleClickTracker.acceptClickAsDoubleClick(e)) {
 				return;
 			}
 

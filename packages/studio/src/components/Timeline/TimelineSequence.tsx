@@ -581,7 +581,7 @@ const TimelineSequenceInner: React.FC<{
 	);
 	const onSequenceClick = useCallback(
 		(e: React.MouseEvent<HTMLDivElement>) => {
-			if (!dragAwareDoubleClick.acceptClickAsDoubleClick(e.detail)) {
+			if (!dragAwareDoubleClick.acceptClickAsDoubleClick(e)) {
 				return;
 			}
 

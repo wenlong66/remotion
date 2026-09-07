@@ -2,7 +2,9 @@ export type DragAwareDoubleClickTracker = {
 	readonly beginPointerGesture: (event: Pick<PointerEvent, 'button'>) => void;
 	readonly endPointerGesture: (wasDragged: boolean) => void;
 	readonly consumePointerGestureWasDragged: () => boolean;
-	readonly acceptClickAsDoubleClick: (clickCount: number) => boolean;
+	readonly acceptClickAsDoubleClick: (
+		event: Pick<MouseEvent, 'button' | 'detail'>,
+	) => boolean;
 };
 
 export const createDragAwareDoubleClickTracker =
@@ -25,12 +27,13 @@ export const createDragAwareDoubleClickTracker =
 				pointerGestureWasDragged = false;
 				return wasDragged;
 			},
-			acceptClickAsDoubleClick: (clickCount) => {
+			acceptClickAsDoubleClick: (event) => {
 				return (
-					clickCount > 0 &&
-					clickCount % 2 === 0 &&
-					currentPointerButton === 0 &&
-					(clickCount > 2 || previousPointerButton === 0)
+					event.button === 0 &&
+					event.detail > 0 &&
+					event.detail % 2 === 0 &&
+					(event.detail > 2 ||
+						(previousPointerButton === 0 && currentPointerButton === 0))
 				);
 			},
 		};
