@@ -236,8 +236,24 @@ export const BasicCaptions: React.FC<BasicCaptionsProps> = ({
 					{
 						text: 'Simple captions,\nready for every video.',
 						startMs: 0,
+						endMs: 2200,
+						timestampMs: 1100,
+						confidence: null,
+						pageBreakAfter: true,
+					},
+					{
+						text: 'No animation,\njust clear text.',
+						startMs: 2200,
+						endMs: 4400,
+						timestampMs: 3300,
+						confidence: null,
+						pageBreakAfter: true,
+					},
+					{
+						text: 'Easy to read,\nand easy to customize.',
+						startMs: 4400,
 						endMs: 7000,
-						timestampMs: 3500,
+						timestampMs: 5700,
 						confidence: null,
 					},
 				]}
