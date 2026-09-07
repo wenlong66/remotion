@@ -1,4 +1,10 @@
-import type {ConfigUpdate} from '@remotion/studio-shared';
+import type {
+	ConfigUpdate,
+	ConfigValue,
+	StudioKeyboardShortcut,
+	StudioKeyboardShortcutAction,
+	StudioKeyboardShortcuts,
+} from '@remotion/studio-shared';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {getBrowserStudioOperations} from '../helpers/browser-studio-operations';
 import {
@@ -13,7 +19,10 @@ import {booleanOptions, ConfigSelect} from './ConfigSelect';
 import {sectionHeader} from './InspectorPanel/styles';
 import {
 	askAIKeyboardShortcutGroup,
+	formatKeyboardShortcut,
+	getKeyboardShortcutsForAction,
 	keyboardShortcutGroups,
+	shortcutFromKeyboardEvent,
 } from './keyboard-shortcuts';
 import {Spacing} from './layout';
 import {ValidationMessage} from './NewComposition/ValidationMessage';
@@ -46,7 +55,7 @@ const shortcutRow: React.CSSProperties = {
 	gap: 16,
 	justifyContent: 'space-between',
 	margin: '0 16px',
-	minHeight: 38,
+	minHeight: 42,
 };
 
 const lastShortcutRow: React.CSSProperties = {
@@ -61,10 +70,16 @@ const actionName: React.CSSProperties = {
 	minWidth: 0,
 };
 
-const chords: React.CSSProperties = {
+const actions: React.CSSProperties = {
 	alignItems: 'center',
 	display: 'flex',
 	flexShrink: 0,
+	gap: 6,
+};
+
+const chords: React.CSSProperties = {
+	alignItems: 'center',
+	display: 'flex',
 	gap: 6,
 };
 
@@ -88,16 +103,81 @@ const key: React.CSSProperties = {
 	textAlign: 'center',
 };
 
+const chordButton: React.CSSProperties = {
+	alignItems: 'center',
+	background: 'transparent',
+	border: 0,
+	cursor: 'pointer',
+	display: 'flex',
+	font: 'inherit',
+	margin: 0,
+	padding: '4px 0',
+};
+
+const smallButton: React.CSSProperties = {
+	background: 'transparent',
+	border: 0,
+	color: LIGHT_TEXT,
+	cursor: 'pointer',
+	fontSize: 11,
+	padding: '4px',
+};
+
 const alternative: React.CSSProperties = {
 	color: LIGHT_TEXT,
 	fontSize: 11,
+};
+
+const emptyShortcut: React.CSSProperties = {
+	color: LIGHT_TEXT,
+	fontSize: 12,
+	fontStyle: 'italic',
+};
+
+const isSameShortcut = (
+	first: StudioKeyboardShortcut,
+	second: StudioKeyboardShortcut,
+) =>
+	first.key.toLowerCase() === second.key.toLowerCase() &&
+	(first.commandOrControl ?? false) === (second.commandOrControl ?? false) &&
+	(first.shift ?? false) === (second.shift ?? false) &&
+	(first.alt ?? false) === (second.alt ?? false);
+
+const ShortcutChords: React.FC<{
+	readonly values: readonly (readonly string[])[];
+}> = ({values}) => {
+	if (values.length === 0) {
+		return <span style={emptyShortcut}>Unassigned</span>;
+	}
+
+	return (
+		<span style={chords}>
+			{values.map((keys, chordIndex) => (
+				<React.Fragment key={keys.join('-')}>
+					{chordIndex > 0 ? <span style={alternative}>or</span> : null}
+					<span style={chord}>
+						{keys.map((keyboardKey) => (
+							<kbd key={keyboardKey} style={key}>
+								{keyboardKey}
+							</kbd>
+						))}
+					</span>
+				</React.Fragment>
+			))}
+		</span>
+	);
 };
 
 export const KeyboardShortcutsSettings: React.FC = () => {
 	const {error: settingsError, revision, studioRuntimeConfig} = useSettings();
 	const isBrowserStudio = getBrowserStudioOperations() !== null;
 	const [enabled, setEnabled] = useState<boolean | null>(null);
-	const [edited, setEdited] = useState(false);
+	const [configuredShortcuts, setConfiguredShortcuts] =
+		useState<StudioKeyboardShortcuts>({});
+	const [enabledEdited, setEnabledEdited] = useState(false);
+	const [shortcutsEdited, setShortcutsEdited] = useState(false);
+	const [recording, setRecording] =
+		useState<StudioKeyboardShortcutAction | null>(null);
 	const [syncedRevision, setSyncedRevision] = useState(-1);
 	const [error, setError] = useState<string | null>(null);
 	const displayedShortcutGroups = getStudioAskAIEnabled()
@@ -113,31 +193,47 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 			studioRuntimeConfig.configFileStudioSettings?.keyboardShortcutsEnabled ??
 				null,
 		);
-		setEdited(false);
+		setConfiguredShortcuts(studioRuntimeConfig.keyboardShortcuts ?? {});
+		setEnabledEdited(false);
+		setShortcutsEdited(false);
+		setRecording(null);
 		setSyncedRevision(revision);
 		setError(null);
 	}, [revision, studioRuntimeConfig]);
 
 	const onEnabledChange = useCallback((value: boolean | null) => {
 		setEnabled(value);
-		setEdited(true);
+		setEnabledEdited(true);
 	}, []);
 
 	const updates = useMemo((): ConfigUpdate[] => {
-		if (!edited) {
-			return [];
+		const nextUpdates: ConfigUpdate[] = [];
+		if (enabledEdited) {
+			nextUpdates.push(
+				enabled === null
+					? {setter: 'setKeyboardShortcutsEnabled', type: 'delete'}
+					: {
+							setter: 'setKeyboardShortcutsEnabled',
+							type: 'set',
+							value: enabled,
+						},
+			);
 		}
 
-		return enabled === null
-			? [{setter: 'setKeyboardShortcutsEnabled', type: 'delete'}]
-			: [
-					{
-						setter: 'setKeyboardShortcutsEnabled',
-						type: 'set',
-						value: enabled,
-					},
-				];
-	}, [edited, enabled]);
+		if (shortcutsEdited) {
+			nextUpdates.push(
+				Object.keys(configuredShortcuts).length === 0
+					? {setter: 'setKeyboardShortcuts', type: 'delete'}
+					: {
+							setter: 'setKeyboardShortcuts',
+							type: 'set',
+							value: configuredShortcuts as ConfigValue,
+						},
+			);
+		}
+
+		return nextUpdates;
+	}, [configuredShortcuts, enabled, enabledEdited, shortcutsEdited]);
 
 	const ready = studioRuntimeConfig !== null && syncedRevision === revision;
 	useAutoSaveConfig({
@@ -170,36 +266,139 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 				<div key={group.name}>
 					<p style={shortcutSectionTitle}>{group.name}</p>
 					<div role="list" aria-label={group.name}>
-						{group.shortcuts.map((shortcut, shortcutIndex) => (
-							<div
-								key={shortcut.action}
-								role="listitem"
-								style={
-									groupIndex === displayedShortcutGroups.length - 1 &&
-									shortcutIndex === group.shortcuts.length - 1
-										? lastShortcutRow
-										: shortcutRow
-								}
-							>
-								<span style={actionName}>{shortcut.action}</span>
-								<span style={chords}>
-									{shortcut.chords.map((keys, chordIndex) => (
-										<React.Fragment key={keys.join('-')}>
-											{chordIndex > 0 ? (
-												<span style={alternative}>or</span>
-											) : null}
-											<span style={chord}>
-												{keys.map((keyboardKey) => (
-													<kbd key={keyboardKey} style={key}>
-														{keyboardKey}
-													</kbd>
-												))}
+						{group.shortcuts.map((shortcut, shortcutIndex) => {
+							const configured =
+								shortcut.actionId === null
+									? false
+									: Object.prototype.hasOwnProperty.call(
+											configuredShortcuts,
+											shortcut.actionId,
+										);
+							const shortcutValues =
+								shortcut.actionId === null
+									? (shortcut.fixedChords ?? [])
+									: getKeyboardShortcutsForAction(
+											shortcut.actionId,
+											configuredShortcuts,
+										).map(formatKeyboardShortcut);
+
+							return (
+								<div
+									key={shortcut.action}
+									role="listitem"
+									style={
+										groupIndex === displayedShortcutGroups.length - 1 &&
+										shortcutIndex === group.shortcuts.length - 1
+											? lastShortcutRow
+											: shortcutRow
+									}
+								>
+									<span style={actionName}>{shortcut.action}</span>
+									<span style={actions}>
+										{shortcut.actionId === null || isBrowserStudio ? (
+											<span title={shortcut.fixedReason}>
+												<ShortcutChords values={shortcutValues} />
+												{shortcut.actionId === null ? (
+													<span style={smallButton}>Fixed</span>
+												) : null}
 											</span>
-										</React.Fragment>
-									))}
-								</span>
-							</div>
-						))}
+										) : (
+											<>
+												<button
+													type="button"
+													style={chordButton}
+													title="Click, then press a new shortcut"
+													aria-label={`Change shortcut for ${shortcut.action}`}
+													onClick={() => {
+														setError(null);
+														setRecording(shortcut.actionId);
+													}}
+													onKeyDown={(event) => {
+														if (recording !== shortcut.actionId) return;
+														event.preventDefault();
+														event.stopPropagation();
+														if (event.key === 'Escape') {
+															setRecording(null);
+															return;
+														}
+
+														const value = shortcutFromKeyboardEvent(
+															event.nativeEvent,
+														);
+														if (value === null) return;
+														const conflict = displayedShortcutGroups
+															.flatMap((item) => item.shortcuts)
+															.find(
+																(item) =>
+																	item.actionId !== null &&
+																	item.actionId !== shortcut.actionId &&
+																	getKeyboardShortcutsForAction(
+																		item.actionId,
+																		configuredShortcuts,
+																	).some((candidate) =>
+																		isSameShortcut(candidate, value),
+																	),
+															);
+														if (conflict) {
+															setError(
+																`Shortcut is already used by “${conflict.action}”.`,
+															);
+															return;
+														}
+
+														setConfiguredShortcuts((current) => ({
+															...current,
+															[shortcut.actionId!]: value,
+														}));
+														setShortcutsEdited(true);
+														setRecording(null);
+													}}
+												>
+													{recording === shortcut.actionId ? (
+														<span style={emptyShortcut}>Press shortcut…</span>
+													) : (
+														<ShortcutChords values={shortcutValues} />
+													)}
+												</button>
+												{configured ? (
+													<button
+														type="button"
+														style={smallButton}
+														title="Reset to default"
+														onClick={() => {
+															setConfiguredShortcuts((current) => {
+																const next = {...current};
+																delete next[shortcut.actionId!];
+																return next;
+															});
+															setShortcutsEdited(true);
+														}}
+													>
+														Reset
+													</button>
+												) : null}
+												{configuredShortcuts[shortcut.actionId] !== null ? (
+													<button
+														type="button"
+														style={smallButton}
+														title="Disable shortcut"
+														onClick={() => {
+															setConfiguredShortcuts((current) => ({
+																...current,
+																[shortcut.actionId!]: null,
+															}));
+															setShortcutsEdited(true);
+														}}
+													>
+														Disable
+													</button>
+												) : null}
+											</>
+										)}
+									</span>
+								</div>
+							);
+						})}
 					</div>
 				</div>
 			))}

@@ -780,7 +780,7 @@ export const TimelineSelectAllKeybindings: React.FC<{
 
 		const selectAll = keybindings.registerKeybinding({
 			event: 'keydown',
-			key: 'a',
+			action: 'selectAllSequenceRows',
 			callback: () => {
 				const latestSelectableSequenceSelections =
 					selectableSequenceSelectionsRef.current;
@@ -792,7 +792,6 @@ export const TimelineSelectAllKeybindings: React.FC<{
 					latestSelectableSequenceSelections,
 				);
 			},
-			commandCtrlKey: true,
 			preventDefault: true,
 			triggerIfInputFieldFocused: false,
 			keepRegisteredWhenNotHighestContext: false,

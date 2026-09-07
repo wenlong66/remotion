@@ -1842,6 +1842,21 @@ test.describe('visual mode', () => {
 			await expect(
 				dialog.getByRole('list', {name: 'Playback', exact: true}),
 			).toBeVisible();
+			const playPauseShortcut = dialog.getByRole('button', {
+				name: 'Change shortcut for Play / Pause',
+			});
+			await playPauseShortcut.click();
+			await expect(playPauseShortcut).toContainText('Press shortcut');
+			await page.keyboard.press('q');
+			await expect
+				.poll(() => fs.readFileSync(configFile, 'utf8'))
+				.toContain('Config.setKeyboardShortcuts({');
+			await expect(playPauseShortcut).toContainText('Q');
+			await dialog.getByTitle('Reset to default', {exact: true}).click();
+			await expect
+				.poll(() => fs.readFileSync(configFile, 'utf8'))
+				.not.toContain('Config.setKeyboardShortcuts');
+			await expect(playPauseShortcut).toContainText('Space');
 			await dialog.getByRole('button', {name: 'Studio', exact: true}).click();
 
 			const askAIEnabled = dialog.getByTitle('Ask AI enabled', {exact: true});
