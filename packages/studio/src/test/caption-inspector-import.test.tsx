@@ -53,7 +53,7 @@ test('imports captions from a JSON file in the public folder', async () => {
 			</SetSelectedModalContext.Provider>,
 		);
 
-		fireEvent.click(screen.getByRole('button', {name: 'Import'}));
+		fireEvent.click(screen.getByRole('button', {name: 'Import captions'}));
 		const modal = selectedModal as ModalState | null;
 		if (modal?.type !== 'quick-switcher' || modal.assetSelection === null) {
 			throw new Error('Expected asset Quick Switcher to open');
