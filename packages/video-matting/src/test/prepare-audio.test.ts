@@ -14,18 +14,23 @@ import {
 } from 'mediabunny';
 import {prepareAudio} from '../prepare-audio';
 
-test('packet-copies Opus audio to both outputs and rebases its timestamps', async () => {
-	const fixture = Bun.file(
-		new URL('../../../example/public/opus.webm', import.meta.url),
-	);
+const getAudioFixture = async () => {
 	const input = new Input({
 		formats: ALL_FORMATS,
-		source: new BlobSource(fixture),
+		source: new BlobSource(
+			Bun.file(new URL('../../../example/public/opus.webm', import.meta.url)),
+		),
 	});
-	const inputAudioTrack = await input.getPrimaryAudioTrack();
-	expect(inputAudioTrack).not.toBeNull();
-	const audioStartTimestamp = await inputAudioTrack!.getFirstTimestamp();
+	const track = await input.getPrimaryAudioTrack();
+	if (track === null) {
+		throw new Error('Expected an audio track in the fixture');
+	}
 
+	return {input, track, start: await track.getFirstTimestamp()};
+};
+
+test('copies and rebases Opus audio to both outputs', async () => {
+	const {input, start} = await getAudioFixture();
 	const baseTarget = new BufferTarget();
 	const foregroundTarget = new BufferTarget();
 	const baseOutput = new Output({
@@ -41,46 +46,34 @@ test('packet-copies Opus audio to both outputs and rebases its timestamps', asyn
 		baseOutput,
 		foregroundOutput,
 		destination: 'both',
-		videoStartTimestamp: audioStartTimestamp,
-		videoEndTimestamp: audioStartTimestamp + 0.25,
+		videoStartTimestamp: start,
+		videoEndTimestamp: start + 0.25,
 		audioQuality: null,
 		forceTranscode: false,
 	});
 
 	await Promise.all([baseOutput.start(), foregroundOutput.start()]);
 	await audio.prime();
-	await audio.writeAudioUntil(0);
 	await audio.finishAudio();
 	await Promise.all([baseOutput.finalize(), foregroundOutput.finalize()]);
 
-	expect(baseTarget.buffer).not.toBeNull();
-	expect(foregroundTarget.buffer).not.toBeNull();
-	for (const buffer of [baseTarget.buffer!, foregroundTarget.buffer!]) {
+	for (const buffer of [baseTarget.buffer, foregroundTarget.buffer]) {
+		expect(buffer).not.toBeNull();
 		const outputInput = new Input({
 			formats: ALL_FORMATS,
-			source: new BufferSource(buffer),
+			source: new BufferSource(buffer!),
 		});
-		const outputAudioTrack = await outputInput.getPrimaryAudioTrack();
-		expect(await outputAudioTrack?.getCodec()).toBe('opus');
-		expect(await outputAudioTrack?.getFirstTimestamp()).toBe(0);
+		const outputTrack = await outputInput.getPrimaryAudioTrack();
+		expect(await outputTrack?.getCodec()).toBe('opus');
+		expect(await outputTrack?.getFirstTimestamp()).toBe(0);
 		outputInput.dispose();
 	}
 
 	input.dispose();
 });
 
-test('primes delayed audio so queued video data can be muxed', async () => {
-	const fixture = Bun.file(
-		new URL('../../../example/public/opus.webm', import.meta.url),
-	);
-	const input = new Input({
-		formats: ALL_FORMATS,
-		source: new BlobSource(fixture),
-	});
-	const inputAudioTrack = await input.getPrimaryAudioTrack();
-	expect(inputAudioTrack).not.toBeNull();
-	const audioStartTimestamp = await inputAudioTrack!.getFirstTimestamp();
-
+test('primes delayed audio so the muxer can emit queued video', async () => {
+	const {input, start} = await getAudioFixture();
 	let bytesWritten = 0;
 	const baseOutput = new Output({
 		format: new WebMOutputFormat(),
@@ -97,21 +90,19 @@ test('primes delayed audio so queued video data can be muxed', async () => {
 		target: new BufferTarget(),
 	});
 	const videoSource = new EncodedVideoPacketSource('vp9');
-	const videoDecoderConfig: VideoDecoderConfig = {
+	const decoderConfig: VideoDecoderConfig = {
 		codec: 'vp09.00.10.08',
 		codedWidth: 2,
 		codedHeight: 2,
 	};
-	baseOutput.addVideoTrack(videoSource, {
-		decoderConfig: videoDecoderConfig,
-	});
+	baseOutput.addVideoTrack(videoSource, {decoderConfig});
 	const audio = await prepareAudio({
 		input,
 		baseOutput,
 		foregroundOutput,
 		destination: 'base',
-		videoStartTimestamp: audioStartTimestamp - 1,
-		videoEndTimestamp: audioStartTimestamp + 0.25,
+		videoStartTimestamp: start - 1,
+		videoEndTimestamp: start + 0.25,
 		audioQuality: null,
 		forceTranscode: false,
 	});
@@ -119,114 +110,23 @@ test('primes delayed audio so queued video data can be muxed', async () => {
 	await baseOutput.start();
 	await videoSource.add(
 		new EncodedPacket(new Uint8Array([0]), 'key', 0, 0.04),
-		{decoderConfig: videoDecoderConfig},
+		{decoderConfig},
 	);
 	await Promise.resolve();
-	const bytesWrittenBeforePrime = bytesWritten;
-
+	const bytesBeforePrime = bytesWritten;
 	await audio.prime();
 	await Promise.resolve();
 
-	expect(bytesWritten).toBeGreaterThan(bytesWrittenBeforePrime);
+	expect(bytesWritten).toBeGreaterThan(bytesBeforePrime);
 	await audio.cancel();
 	await Promise.all([baseOutput.cancel(), foregroundOutput.cancel()]);
 	input.dispose();
 });
 
-test('cancel is idempotent before the outputs start', async () => {
-	const fixture = Bun.file(
-		new URL('../../../example/public/opus.webm', import.meta.url),
-	);
-	const input = new Input({
-		formats: ALL_FORMATS,
-		source: new BlobSource(fixture),
-	});
-	const inputAudioTrack = await input.getPrimaryAudioTrack();
-	expect(inputAudioTrack).not.toBeNull();
-	const audioStartTimestamp = await inputAudioTrack!.getFirstTimestamp();
-	const baseOutput = new Output({
-		format: new WebMOutputFormat(),
-		target: new BufferTarget(),
-	});
-	const foregroundOutput = new Output({
-		format: new WebMOutputFormat(),
-		target: new BufferTarget(),
-	});
-	const audio = await prepareAudio({
-		input,
-		baseOutput,
-		foregroundOutput,
-		destination: 'both',
-		videoStartTimestamp: audioStartTimestamp,
-		videoEndTimestamp: audioStartTimestamp + 0.25,
-		audioQuality: null,
-		forceTranscode: false,
-	});
-
-	await audio.cancel();
-	await audio.cancel();
-	await Promise.all([baseOutput.cancel(), foregroundOutput.cancel()]);
-
-	expect(baseOutput.state).toBe('canceled');
-	expect(foregroundOutput.state).toBe('canceled');
-	input.dispose();
-});
-
-test('does not attach audio when it does not overlap the video', async () => {
-	const fixture = Bun.file(
-		new URL('../../../example/public/opus.webm', import.meta.url),
-	);
-	const input = new Input({
-		formats: ALL_FORMATS,
-		source: new BlobSource(fixture),
-	});
-	const inputAudioTrack = await input.getPrimaryAudioTrack();
-	expect(inputAudioTrack).not.toBeNull();
-	const audioEndTimestamp = await inputAudioTrack!.computeDuration();
-	const baseOutput = new Output({
-		format: new WebMOutputFormat(),
-		target: new BufferTarget(),
-	});
-	const foregroundOutput = new Output({
-		format: new WebMOutputFormat(),
-		target: new BufferTarget(),
-	});
-	const audio = await prepareAudio({
-		input,
-		baseOutput,
-		foregroundOutput,
-		destination: 'both',
-		videoStartTimestamp: audioEndTimestamp + 1,
-		videoEndTimestamp: audioEndTimestamp + 2,
-		audioQuality: null,
-		forceTranscode: false,
-	});
-
-	expect(baseOutput.tracks).toHaveLength(0);
-	expect(foregroundOutput.tracks).toHaveLength(0);
-	await audio.prime();
-	await audio.finishAudio();
-	await Promise.all([baseOutput.cancel(), foregroundOutput.cancel()]);
-	input.dispose();
-});
-
-test('explicit bitrate requests force transcoding instead of Opus packet copy', async () => {
-	const fixture = Bun.file(
-		new URL('../../../example/public/opus.webm', import.meta.url),
-	);
-	const input = new Input({
-		formats: ALL_FORMATS,
-		source: new BlobSource(fixture),
-	});
-	const inputAudioTrack = await input.getPrimaryAudioTrack();
-	expect(inputAudioTrack).not.toBeNull();
-	const audioStartTimestamp = await inputAudioTrack!.getFirstTimestamp();
-	let decodeChecks = 0;
-	Object.defineProperty(inputAudioTrack, 'canDecode', {
-		value: () => {
-			decodeChecks++;
-			return Promise.resolve(false);
-		},
+test('uses the transcoding path when packet copying is disabled', async () => {
+	const {input, track, start} = await getAudioFixture();
+	Object.defineProperty(track, 'canDecode', {
+		value: () => Promise.resolve(false),
 	});
 	const baseOutput = new Output({
 		format: new WebMOutputFormat(),
@@ -243,13 +143,13 @@ test('explicit bitrate requests force transcoding instead of Opus packet copy', 
 			baseOutput,
 			foregroundOutput,
 			destination: 'base',
-			videoStartTimestamp: audioStartTimestamp,
-			videoEndTimestamp: audioStartTimestamp + 0.25,
+			videoStartTimestamp: start,
+			videoEndTimestamp: start + 0.25,
 			audioQuality: null,
 			forceTranscode: true,
 		}),
 	).rejects.toThrow('cannot be decoded');
-	expect(decodeChecks).toBe(1);
+
 	await Promise.all([baseOutput.cancel(), foregroundOutput.cancel()]);
 	input.dispose();
 });

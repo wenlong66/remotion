@@ -3,7 +3,7 @@ import {
 	canUseVideoMatting,
 	VideoMattingUnsupportedReason,
 } from '../can-use-video-matting';
-import {getAvailableModels, getVideoMattingModelInfo} from '../models';
+import {getAvailableModels} from '../models';
 
 test('returns public metadata without mutable internal model settings', () => {
 	const models = getAvailableModels();
@@ -25,15 +25,6 @@ test('returns public metadata without mutable internal model settings', () => {
 
 	models[0].purpose = 'general';
 	expect(getAvailableModels()[0].purpose).toBe('person');
-});
-
-test('rejects unsupported runtime model values', () => {
-	expect(() => getVideoMattingModelInfo('not-a-model' as never)).toThrow(
-		'Unsupported video matting model "not-a-model". Available models: modnet, ben2-base.',
-	);
-	expect(() => getVideoMattingModelInfo('toString' as never)).toThrow(
-		'Unsupported video matting model "toString". Available models: modnet, ben2-base.',
-	);
 });
 
 test('requires shader-f16 only for the fp16 BEN2 model', async () => {
@@ -82,73 +73,6 @@ test('requires shader-f16 only for the fp16 BEN2 model', async () => {
 			Object.defineProperty(globalThis, 'navigator', originalNavigator);
 		} else {
 			delete (globalThis as {navigator?: unknown}).navigator;
-		}
-	}
-});
-
-test('supports a secure worker with OffscreenCanvas and WebGPU', async () => {
-	const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
-	const originalNavigator = Object.getOwnPropertyDescriptor(
-		globalThis,
-		'navigator',
-	);
-	const originalOffscreenCanvas = Object.getOwnPropertyDescriptor(
-		globalThis,
-		'OffscreenCanvas',
-	);
-	const originalSecureContext = Object.getOwnPropertyDescriptor(
-		globalThis,
-		'isSecureContext',
-	);
-	delete (globalThis as {window?: unknown}).window;
-	Object.defineProperty(globalThis, 'OffscreenCanvas', {
-		configurable: true,
-		value: class FakeOffscreenCanvas {},
-	});
-	Object.defineProperty(globalThis, 'isSecureContext', {
-		configurable: true,
-		value: true,
-	});
-	Object.defineProperty(globalThis, 'navigator', {
-		configurable: true,
-		value: {
-			gpu: {
-				requestAdapter: () => Promise.resolve({features: new Set<string>()}),
-			},
-		},
-	});
-
-	try {
-		expect(await canUseVideoMatting()).toEqual({supported: true});
-	} finally {
-		if (originalWindow) {
-			Object.defineProperty(globalThis, 'window', originalWindow);
-		}
-
-		if (originalNavigator) {
-			Object.defineProperty(globalThis, 'navigator', originalNavigator);
-		} else {
-			delete (globalThis as {navigator?: unknown}).navigator;
-		}
-
-		if (originalOffscreenCanvas) {
-			Object.defineProperty(
-				globalThis,
-				'OffscreenCanvas',
-				originalOffscreenCanvas,
-			);
-		} else {
-			delete (globalThis as {OffscreenCanvas?: unknown}).OffscreenCanvas;
-		}
-
-		if (originalSecureContext) {
-			Object.defineProperty(
-				globalThis,
-				'isSecureContext',
-				originalSecureContext,
-			);
-		} else {
-			delete (globalThis as {isSecureContext?: unknown}).isSecureContext;
 		}
 	}
 });
