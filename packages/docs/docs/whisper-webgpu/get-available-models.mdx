@@ -15,7 +15,13 @@ const models = getAvailableModels();
 console.log(models);
 ```
 
-Each item contains the short `name`, Hugging Face `modelId`, parameter count, whether the model is multilingual, and the estimated WebGPU download size.
+Each item contains the short `name`, upstream Hugging Face `modelId`, parameter count, whether the model is multilingual, whether it supports translation, and the estimated WebGPU download size.
+
+The `modelId` identifies the upstream model repository for provenance. Model files are served from `remotion.media`; `modelId` is not the download location.
+
+### supportsTranslation<AvailableFrom v="4.0.522" />
+
+Whether the model supports `task: 'translate'` in [`transcribe()`](/docs/whisper-webgpu/transcribe). Translation converts speech into English. It is supported by multilingual non-turbo models only.
 
 Available sizes are `tiny`, `base`, `small`, `medium`, and `large-v3-turbo`. English-only `.en` variants are available through `medium`.
 
