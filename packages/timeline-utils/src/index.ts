@@ -47,3 +47,8 @@ export {
 export {renderFrameStripToCanvas} from './render-frame-strip-to-canvas';
 export type {RenderFrameStripToCanvasOptions} from './render-frame-strip-to-canvas';
 export {resizeVideoFrame} from './resize-video-frame';
+
+export {
+	getAverageAudioVolume,
+	formatAverageAudioVolume,
+} from './get-average-audio-volume';
