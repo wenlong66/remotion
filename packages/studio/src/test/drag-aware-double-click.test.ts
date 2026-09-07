@@ -39,3 +39,11 @@ test('A mixed-button click succession can recover on the next primary double cli
 	tracker.beginPointerGesture({button: 0});
 	expect(tracker.acceptClickAsDoubleClick(4)).toBe(true);
 });
+
+test('A continued click succession can recover after the tracker remounts', () => {
+	const tracker = createDragAwareDoubleClickTracker();
+
+	tracker.beginPointerGesture({button: 0});
+	expect(tracker.acceptClickAsDoubleClick(2)).toBe(false);
+	expect(tracker.acceptClickAsDoubleClick(4)).toBe(true);
+});

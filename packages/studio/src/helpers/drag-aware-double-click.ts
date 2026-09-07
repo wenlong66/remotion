@@ -29,8 +29,8 @@ export const createDragAwareDoubleClickTracker =
 				return (
 					clickCount > 0 &&
 					clickCount % 2 === 0 &&
-					previousPointerButton === 0 &&
-					currentPointerButton === 0
+					currentPointerButton === 0 &&
+					(clickCount > 2 || previousPointerButton === 0)
 				);
 			},
 		};
