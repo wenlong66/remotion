@@ -4,28 +4,9 @@ title: Keyboard shortcuts
 crumb: 'Remotion Studio'
 ---
 
-Open the Shortcuts tab in the Studio settings to see the shortcuts for the current project. You can also press <kbd>?</kbd> to open this tab.
+Open the Shortcuts tab in the Studio settings to see the shortcuts for the current project.
 
-## Customizing shortcuts<AvailableFrom v="4.0.523" />
-
-Select a shortcut in the settings and press a new key combination. The Studio writes the override to `remotion.config.ts` using [`Config.setKeyboardShortcuts()`](/docs/config#setkeyboardshortcuts).
-
-You can also edit the configuration file directly:
-
-```ts twoslash title="remotion.config.ts"
-import {Config} from '@remotion/cli/config';
-// ---cut---
-Config.setKeyboardShortcuts({
-	playPause: {key: 'q'},
-	quickSwitcher: {key: 'p', commandOrControl: true},
-	toggleSnapping: {key: 's', shift: true},
-	render: null,
-});
-```
-
-Omitted actions keep their default shortcut. Set an action to `null` to disable it, or pass an array to assign multiple shortcuts.
-
-`commandOrControl` uses Command on macOS and Control on other platforms. The `shift` and `alt` modifiers are also supported.
+You can also press <kbd>?</kbd> to open this tab.
 
 ## Available actions
 
@@ -71,7 +52,7 @@ Omitted actions keep their default shortcut. Set an action to `null` to disable 
 
 ## Fixed shortcuts
 
-Some shortcuts are context-sensitive interactions or browser events and cannot yet be overridden:
+Some shortcuts are context-sensitive interactions or browser events and cannot be overridden:
 
 | Shortcut                                 | Action                                                               |
 | ---------------------------------------- | -------------------------------------------------------------------- |
@@ -89,3 +70,26 @@ Press <kbd>Tab</kbd> to navigate between controls and <kbd>Enter</kbd> to activa
 ## Disabling keyboard shortcuts
 
 Use [`Config.setKeyboardShortcutsEnabled(false)`](/docs/config#setkeyboardshortcutsenabled) or start the Studio with [`--disable-keyboard-shortcuts`](/docs/cli/studio#--disable-keyboard-shortcuts) to disable all shortcuts.
+
+## Customizing shortcuts<AvailableFrom v="4.0.523" />
+
+Select a shortcut in the settings and press a new key combination.
+
+The Studio writes the override to `remotion.config.ts` using [`Config.setKeyboardShortcuts()`](/docs/config#setkeyboardshortcuts).
+
+You can also edit the configuration file directly:
+
+```ts twoslash title="remotion.config.ts"
+import {Config} from '@remotion/cli/config';
+// ---cut---
+Config.setKeyboardShortcuts({
+	playPause: {key: 'q'},
+	quickSwitcher: {key: 'p', commandOrControl: true},
+	toggleSnapping: {key: 's', shift: true},
+	render: null,
+});
+```
+
+Omitted actions keep their default shortcut. Set an action to `null` to disable it, or pass an array to assign multiple shortcuts.
+
+`commandOrControl` uses Command on macOS and Control on other platforms. The `shift` and `alt` modifiers are also supported.
