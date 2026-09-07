@@ -3,11 +3,16 @@ import {expect, test} from '@playwright/test';
 import {rootFile, STUDIO_URL} from './constants.mts';
 import {startStudio, stopStudio} from './studio-server.mts';
 
-test('rounds inherited endings and squares explicit cutoffs', async ({
+test('handles timeline layer edge geometry and interactions', async ({
 	page,
 }) => {
 	await startStudio();
 	try {
+		const openInEditorRequests: unknown[] = [];
+		await page.route('**/api/open-in-editor', async (route) => {
+			openInEditorRequests.push(route.request().postDataJSON());
+			await route.fulfill({json: {success: true, data: {success: true}}});
+		});
 		fs.writeFileSync(
 			rootFile,
 			`
@@ -109,6 +114,12 @@ export const E2eTestRoot = () => <Composition id="timeline-edges" component={Lay
 			await expect(layer).toHaveCSS('border-top-left-radius', radius);
 			await expect(layer).toHaveCSS('border-bottom-left-radius', radius);
 		}
+
+		const movableLayer = page.locator(
+			'[data-timeline-marquee-item][title="Natural end"]',
+		);
+		await movableLayer.dblclick({position: {x: 30, y: 10}});
+		await expect.poll(() => openInEditorRequests.length).toBe(1);
 
 		const rightEdgeLayer = page.locator(
 			'[data-timeline-marquee-item][title="Explicit fill cutoff"]',
