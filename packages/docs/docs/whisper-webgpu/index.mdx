@@ -38,13 +38,9 @@ console.log(captions);
 
 The model is downloaded on the first call and cached by the browser. Call [`loadWhisperModel()`](/docs/whisper-webgpu/load-whisper-model) first to display model download progress.
 
-## Model downloads<AvailableFrom v="4.0.522" />
+## Model hosting
 
-Model files are downloaded from `remotion.media`.
-
-`@remotion/whisper-webgpu` temporarily sets `env.remoteHost` while loading a model and restores it afterwards. This keeps the shared Transformers.js runtime available to other AI workflows. If your site uses a Content Security Policy, allow `https://remotion.media` in `connect-src`.
-
-Versions before 4.0.522 downloaded models from Hugging Face. After upgrading, the browser downloads a previously cached model once more because the download URL, and therefore its cache key, has changed. Call [`clearStaleModels()`](/docs/whisper-webgpu/clear-stale-models) to remove the old Hugging Face cache entries. With the default Transformers.js cache settings, subsequent loads use the new cached copy.
+We noticed that hosting the models on R2 leads to faster downloading than through Hugging Face. Therefore, we mirrored the models to `remotion.media`, keeping them byte-identical.
 
 ## APIs
 
