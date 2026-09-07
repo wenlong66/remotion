@@ -129,7 +129,13 @@ export const buildPackage = async ({
 				validateExternal(externalFinal);
 				const output = await build({
 					entrypoints: batch.map(({path: entryPath}) => entryPath),
-					naming: `[name].${format === 'esm' ? 'mjs' : 'js'}`,
+					naming:
+						action === 'build-shared'
+							? {
+									entry: `[name].${format === 'esm' ? 'mjs' : 'js'}`,
+									chunk: `[name]-[hash].${format === 'esm' ? 'mjs' : 'js'}`,
+								}
+							: `[name].${format === 'esm' ? 'mjs' : 'js'}`,
 					external: externalFinal,
 					target,
 					format,
