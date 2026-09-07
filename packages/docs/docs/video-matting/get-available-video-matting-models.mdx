@@ -4,7 +4,7 @@ title: getAvailableVideoMattingModels()
 crumb: '@remotion/video-matting'
 ---
 
-# getAvailableVideoMattingModels()<AvailableFrom v="4.0.522" />
+# getAvailableVideoMattingModels()<AvailableFrom v="4.0.523" />
 
 Returns metadata for the models supported by [`separateVideoLayers()`](/docs/video-matting/separate-video-layers).
 
@@ -22,6 +22,8 @@ console.log(models);
 
 The [`modnet` model](https://huggingface.co/Xenova/modnet) is Apache-2.0 licensed. The [`ben2-base` model](https://huggingface.co/onnx-community/BEN2-ONNX) is the MIT-licensed BEN2 Base export.
 
+The `modelId` values identify these upstream Hugging Face models for provenance. Runtime files are downloaded from immutable paths on `remotion.media` and are byte-identical to files from the pinned upstream revisions.
+
 Each model contains these properties:
 
 ### name
@@ -30,7 +32,7 @@ The model name accepted by APIs in this package.
 
 ### modelId
 
-The Hugging Face model identifier.
+The upstream Hugging Face model identifier. This is provenance metadata, not the runtime download location.
 
 ### purpose
 
@@ -42,7 +44,7 @@ Whether the model is experimental.
 
 ### webGpuDownloadSize
 
-The estimated WebGPU model download size in bytes. Browser caches and supporting model files may add a small amount.
+The total size in bytes of all runtime files downloaded for WebGPU.
 
 Models process each frame independently and may show temporal flicker. The set of available models may change between package versions.
 

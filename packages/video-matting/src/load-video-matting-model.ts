@@ -1,4 +1,9 @@
-import {getVideoMattingModelInfo, type VideoMattingModel} from './models';
+import {
+	getHostedVideoMattingModelId,
+	getVideoMattingModelInfo,
+	type VideoMattingModel,
+} from './models';
+import {withRemotionModelHost} from './with-remotion-model-host';
 
 export type VideoMattingModelLoadProgress = {
 	status: string;
@@ -150,121 +155,124 @@ const getOrCreateVideoMattingPipeline = ({
 			await pendingDisposal;
 		}
 
-		const {
-			AutoModelForImageSegmentation,
-			AutoProcessor,
-			BackgroundRemovalPipeline,
-		} = await import('@huggingface/transformers');
-		const totalBytes = modelInfo.webGpuDownloadSize;
-		const loadedByFile = new Map<string, number>();
-		let lastProgress = 0;
-		let lastLoadedBytes = 0;
+		return withRemotionModelHost(
+			async ({
+				AutoModelForImageSegmentation,
+				AutoProcessor,
+				BackgroundRemovalPipeline,
+			}) => {
+				const hostedModelId = getHostedVideoMattingModelId(model);
+				const totalBytes = modelInfo.webGpuDownloadSize;
+				const loadedByFile = new Map<string, number>();
+				let lastProgress = 0;
+				let lastLoadedBytes = 0;
 
-		notifyProgress(state, {
-			status: 'loading',
-			file: null,
-			progress: 0,
-			loadedBytes: 0,
-			totalBytes,
-		});
+				notifyProgress(state, {
+					status: 'loading',
+					file: null,
+					progress: 0,
+					loadedBytes: 0,
+					totalBytes,
+				});
 
-		const pretrainedOptions = {
-			device: 'webgpu' as const,
-			dtype: modelInfo.dtype,
-			revision: modelInfo.revision,
-			progress_callback: (event: unknown) => {
-				const record = event as Record<string, unknown>;
-				if (
-					record.status === 'progress' &&
-					typeof record.file === 'string' &&
-					typeof record.loaded === 'number' &&
-					Number.isFinite(record.loaded)
-				) {
-					loadedByFile.set(
-						record.file,
-						Math.max(loadedByFile.get(record.file) ?? 0, record.loaded),
+				const pretrainedOptions = {
+					device: 'webgpu' as const,
+					dtype: modelInfo.dtype,
+					progress_callback: (event: unknown) => {
+						const record = event as Record<string, unknown>;
+						if (
+							record.status === 'progress' &&
+							typeof record.file === 'string' &&
+							typeof record.loaded === 'number' &&
+							Number.isFinite(record.loaded)
+						) {
+							loadedByFile.set(
+								record.file,
+								Math.max(loadedByFile.get(record.file) ?? 0, record.loaded),
+							);
+							const loadedBytes = [...loadedByFile.values()].reduce(
+								(sum, loaded) => sum + loaded,
+								0,
+							);
+							lastProgress = Math.max(
+								lastProgress,
+								Math.min(loadedBytes / totalBytes, 0.99),
+							);
+							lastLoadedBytes = Math.max(lastLoadedBytes, loadedBytes);
+							notifyProgress(state, {
+								status: 'loading',
+								file: null,
+								progress: lastProgress,
+								loadedBytes: Math.min(lastLoadedBytes, totalBytes),
+								totalBytes,
+							});
+						}
+					},
+				};
+				const transformerProcessor = await AutoProcessor.from_pretrained(
+					hostedModelId,
+					pretrainedOptions,
+				);
+				const transformerModel =
+					await AutoModelForImageSegmentation.from_pretrained(
+						hostedModelId,
+						pretrainedOptions,
 					);
-					const loadedBytes = [...loadedByFile.values()].reduce(
-						(sum, loaded) => sum + loaded,
-						0,
-					);
-					lastProgress = Math.max(
-						lastProgress,
-						Math.min(loadedBytes / totalBytes, 0.99),
-					);
-					lastLoadedBytes = Math.max(lastLoadedBytes, loadedBytes);
+				let transformerPipeline: TransformerPipeline | null = null;
+				let returnedPipeline = false;
+				try {
+					transformerPipeline = new BackgroundRemovalPipeline({
+						task: 'background-removal',
+						model: transformerModel,
+						processor: transformerProcessor,
+					}) as unknown as TransformerPipeline;
+					const loadedTransformerPipeline = transformerPipeline;
+
 					notifyProgress(state, {
-						status: 'loading',
+						status: 'ready',
 						file: null,
-						progress: lastProgress,
-						loadedBytes: Math.min(lastLoadedBytes, totalBytes),
+						progress: 1,
+						loadedBytes: totalBytes,
 						totalBytes,
 					});
+
+					const loadedPipeline: LoadedPipeline = {
+						run: async (image) => {
+							const result = await loadedTransformerPipeline(image);
+							if (result.channels !== 4) {
+								throw new Error(
+									`The video matting model "${model}" returned ${result.channels} channels instead of RGBA.`,
+								);
+							}
+
+							const data =
+								result.data instanceof Uint8ClampedArray &&
+								result.data.buffer instanceof ArrayBuffer
+									? (result.data as Uint8ClampedArray<ArrayBuffer>)
+									: new Uint8ClampedArray(result.data);
+
+							return {
+								data,
+								width: result.width,
+								height: result.height,
+								channels: 4,
+							};
+						},
+						dispose: () => loadedTransformerPipeline.dispose(),
+					};
+					returnedPipeline = true;
+					return loadedPipeline;
+				} finally {
+					if (!returnedPipeline) {
+						if (transformerPipeline === null) {
+							await transformerModel.dispose();
+						} else {
+							await transformerPipeline.dispose();
+						}
+					}
 				}
 			},
-		};
-		const transformerProcessor = await AutoProcessor.from_pretrained(
-			modelInfo.modelId,
-			pretrainedOptions,
 		);
-		const transformerModel =
-			await AutoModelForImageSegmentation.from_pretrained(
-				modelInfo.modelId,
-				pretrainedOptions,
-			);
-		let transformerPipeline: TransformerPipeline | null = null;
-		let returnedPipeline = false;
-		try {
-			transformerPipeline = new BackgroundRemovalPipeline({
-				task: 'background-removal',
-				model: transformerModel,
-				processor: transformerProcessor,
-			}) as unknown as TransformerPipeline;
-			const loadedTransformerPipeline = transformerPipeline;
-
-			notifyProgress(state, {
-				status: 'ready',
-				file: null,
-				progress: 1,
-				loadedBytes: totalBytes,
-				totalBytes,
-			});
-
-			const loadedPipeline: LoadedPipeline = {
-				run: async (image) => {
-					const result = await loadedTransformerPipeline(image);
-					if (result.channels !== 4) {
-						throw new Error(
-							`The video matting model "${model}" returned ${result.channels} channels instead of RGBA.`,
-						);
-					}
-
-					const data =
-						result.data instanceof Uint8ClampedArray &&
-						result.data.buffer instanceof ArrayBuffer
-							? (result.data as Uint8ClampedArray<ArrayBuffer>)
-							: new Uint8ClampedArray(result.data);
-
-					return {
-						data,
-						width: result.width,
-						height: result.height,
-						channels: 4,
-					};
-				},
-				dispose: () => loadedTransformerPipeline.dispose(),
-			};
-			returnedPipeline = true;
-			return loadedPipeline;
-		} finally {
-			if (!returnedPipeline) {
-				if (transformerPipeline === null) {
-					await transformerModel.dispose();
-				} else {
-					await transformerPipeline.dispose();
-				}
-			}
-		}
 	});
 
 	pipelines.set(model, state);

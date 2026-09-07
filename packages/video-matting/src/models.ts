@@ -22,7 +22,7 @@ const MODEL_INFO: Record<VideoMattingModel, InternalVideoMattingModelInfo> = {
 		modelId: 'Xenova/modnet',
 		purpose: 'person',
 		experimental: false,
-		webGpuDownloadSize: 25_888_640,
+		webGpuDownloadSize: 25_889_088,
 		revision: 'fa2fa546052fba4c08921230a26cc69a333fca12',
 		dtype: 'fp32',
 		requiresShaderF16: false,
@@ -32,11 +32,16 @@ const MODEL_INFO: Record<VideoMattingModel, InternalVideoMattingModelInfo> = {
 		modelId: 'onnx-community/BEN2-ONNX',
 		purpose: 'general',
 		experimental: true,
-		webGpuDownloadSize: 219_121_675,
+		webGpuDownloadSize: 219_122_146,
 		revision: 'c552aa82688edce09f0ac9d2e31ad53d9d629010',
 		dtype: 'fp16',
 		requiresShaderF16: true,
 	},
+};
+
+const HOSTED_MODEL_IDS: Record<VideoMattingModel, string> = {
+	modnet: 'modnet-v1',
+	'ben2-base': 'ben2-base-v1',
 };
 
 export const getAvailableVideoMattingModels = (): VideoMattingModelInfo[] => {
@@ -61,4 +66,10 @@ export const getVideoMattingModelInfo = (
 	}
 
 	return MODEL_INFO[model];
+};
+
+export const getHostedVideoMattingModelId = (
+	model: VideoMattingModel,
+): string => {
+	return HOSTED_MODEL_IDS[model];
 };

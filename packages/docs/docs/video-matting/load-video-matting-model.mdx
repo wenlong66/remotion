@@ -4,9 +4,9 @@ title: loadVideoMattingModel()
 crumb: '@remotion/video-matting'
 ---
 
-# loadVideoMattingModel()<AvailableFrom v="4.0.522" />
+# loadVideoMattingModel()<AvailableFrom v="4.0.523" />
 
-Downloads and initializes a video matting model. Calling it before [`separateVideoLayers()`](/docs/video-matting/separate-video-layers) lets you show model-loading progress.
+Downloads a video matting model from an immutable path on `remotion.media` and initializes it. Calling it before [`separateVideoLayers()`](/docs/video-matting/separate-video-layers) lets you show model-loading progress.
 
 ```ts twoslash title="load-model.ts"
 import {loadVideoMattingModel} from '@remotion/video-matting';
@@ -62,6 +62,8 @@ Returns an object with this property:
 Whether the same model was already initialized in memory.
 
 The browser manages the persistent [Transformers.js](https://huggingface.co/docs/transformers.js) cache. This function also retains the initialized model in memory until [`disposeVideoMattingModel()`](/docs/video-matting/dispose-video-matting-model) is called or the page closes.
+
+The hosted files are byte-identical to files from the pinned upstream Hugging Face revision. Legacy Hugging Face downloads use different cache entries and are downloaded once more from `remotion.media`.
 
 ## Compatibility
 

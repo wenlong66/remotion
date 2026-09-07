@@ -17,14 +17,14 @@ test('returns public metadata without mutable internal model settings', () => {
 			modelId: 'Xenova/modnet',
 			purpose: 'person',
 			experimental: false,
-			webGpuDownloadSize: 25_888_640,
+			webGpuDownloadSize: 25_889_088,
 		},
 		{
 			name: 'ben2-base',
 			modelId: 'onnx-community/BEN2-ONNX',
 			purpose: 'general',
 			experimental: true,
-			webGpuDownloadSize: 219_121_675,
+			webGpuDownloadSize: 219_122_146,
 		},
 	]);
 

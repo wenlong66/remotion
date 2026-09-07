@@ -780,6 +780,7 @@
       "name": "@remotion/example",
       "version": "4.0.521",
       "dependencies": {
+        "@huggingface/transformers": "catalog:",
         "@mdx-js/loader": "2.3.0",
         "@mdx-js/react": "2.3.0",
         "@mediabunny/ac3": "catalog:",
@@ -2772,13 +2773,16 @@
       "name": "@remotion/video-matting",
       "version": "4.0.521",
       "dependencies": {
-        "@huggingface/transformers": "catalog:",
         "mediabunny": "catalog:",
       },
       "devDependencies": {
+        "@huggingface/transformers": "catalog:",
         "@remotion/eslint-config-internal": "workspace:*",
         "@typescript/native-preview": "catalog:",
         "eslint": "catalog:",
+      },
+      "peerDependencies": {
+        "@huggingface/transformers": "4.2.0",
       },
     },
     "packages/web-renderer": {

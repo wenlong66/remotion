@@ -24,8 +24,10 @@
 		"url": "https://github.com/remotion-dev/remotion/issues"
 	},
 	"dependencies": {
-		"@huggingface/transformers": "catalog:",
 		"mediabunny": "catalog:"
+	},
+	"peerDependencies": {
+		"@huggingface/transformers": "4.2.0"
 	},
 	"exports": {
 		".": {
@@ -36,6 +38,7 @@
 		"./package.json": "./package.json"
 	},
 	"devDependencies": {
+		"@huggingface/transformers": "catalog:",
 		"@remotion/eslint-config-internal": "workspace:*",
 		"@typescript/native-preview": "catalog:",
 		"eslint": "catalog:"
