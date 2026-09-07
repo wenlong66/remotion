@@ -1839,6 +1839,21 @@ test.describe('visual mode', () => {
 			await expect(
 				dialog.getByText('Keyboard shortcuts', {exact: true}),
 			).toBeVisible();
+			const keyboardShortcutsEnabled = dialog.getByRole('checkbox', {
+				name: 'Keyboard shortcuts',
+			});
+			await expect(keyboardShortcutsEnabled).toBeChecked();
+			await keyboardShortcutsEnabled.uncheck();
+			await expect(
+				dialog.getByRole('list', {name: 'Playback', exact: true}),
+			).toHaveCount(0);
+			await expect
+				.poll(() => fs.readFileSync(configFile, 'utf8'))
+				.toContain('Config.setKeyboardShortcutsEnabled(false);');
+			await keyboardShortcutsEnabled.check();
+			await expect
+				.poll(() => fs.readFileSync(configFile, 'utf8'))
+				.not.toContain('Config.setKeyboardShortcutsEnabled');
 			await expect(
 				dialog.getByRole('list', {name: 'Playback', exact: true}),
 			).toBeVisible();

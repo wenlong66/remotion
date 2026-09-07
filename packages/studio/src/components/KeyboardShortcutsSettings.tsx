@@ -16,7 +16,7 @@ import {
 } from '../helpers/colors';
 import {getStudioAskAIEnabled} from '../helpers/studio-runtime-config';
 import {CaretDown} from '../icons/caret';
-import {booleanOptions, ConfigSelect} from './ConfigSelect';
+import {Checkbox} from './Checkbox';
 import {InlineDropdown} from './InlineDropdown';
 import {sectionHeader} from './InspectorPanel/styles';
 import {
@@ -30,6 +30,7 @@ import {
 import {Spacing} from './layout';
 import type {ComboboxValue} from './NewComposition/ComboBox';
 import {ValidationMessage} from './NewComposition/ValidationMessage';
+import {label, optionRow, rightRow} from './RenderModal/layout';
 import {useSettings} from './SettingsContext';
 import {useAutoSaveConfig} from './use-auto-save-config';
 
@@ -175,7 +176,7 @@ const ShortcutChords: React.FC<{
 export const KeyboardShortcutsSettings: React.FC = () => {
 	const {error: settingsError, revision, studioRuntimeConfig} = useSettings();
 	const isBrowserStudio = getBrowserStudioOperations() !== null;
-	const [enabled, setEnabled] = useState<boolean | null>(null);
+	const [enabled, setEnabled] = useState(true);
 	const [configuredShortcuts, setConfiguredShortcuts] =
 		useState<StudioKeyboardShortcuts>({});
 	const [enabledEdited, setEnabledEdited] = useState(false);
@@ -187,6 +188,7 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 	const displayedShortcutGroups = getStudioAskAIEnabled()
 		? [...keyboardShortcutGroups, askAIKeyboardShortcutGroup]
 		: keyboardShortcutGroups;
+	const visibleShortcutGroups = enabled ? displayedShortcutGroups : [];
 
 	useEffect(() => {
 		if (studioRuntimeConfig === null) {
@@ -194,8 +196,8 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 		}
 
 		setEnabled(
-			studioRuntimeConfig.configFileStudioSettings?.keyboardShortcutsEnabled ??
-				null,
+			studioRuntimeConfig.configFileStudioSettings?.keyboardShortcutsEnabled !==
+				false,
 		);
 		setConfiguredShortcuts(studioRuntimeConfig.keyboardShortcuts ?? {});
 		setEnabledEdited(false);
@@ -205,21 +207,24 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 		setError(null);
 	}, [revision, studioRuntimeConfig]);
 
-	const onEnabledChange = useCallback((value: boolean | null) => {
-		setEnabled(value);
-		setEnabledEdited(true);
-	}, []);
+	const onEnabledChange = useCallback(
+		(event: React.ChangeEvent<HTMLInputElement>) => {
+			setEnabled(event.target.checked);
+			setEnabledEdited(true);
+		},
+		[],
+	);
 
 	const updates = useMemo((): ConfigUpdate[] => {
 		const nextUpdates: ConfigUpdate[] = [];
 		if (enabledEdited) {
 			nextUpdates.push(
-				enabled === null
+				enabled
 					? {setter: 'setKeyboardShortcutsEnabled', type: 'delete'}
 					: {
 							setter: 'setKeyboardShortcutsEnabled',
 							type: 'set',
-							value: enabled,
+							value: false,
 						},
 			);
 		}
@@ -257,16 +262,19 @@ export const KeyboardShortcutsSettings: React.FC = () => {
 			{isBrowserStudio ? null : (
 				<>
 					<p style={dividerLabel}>General</p>
-					<ConfigSelect
-						defaultLabel="Enabled"
-						name="Keyboard shortcuts"
-						onChange={onEnabledChange}
-						options={booleanOptions}
-						value={enabled}
-					/>
+					<label style={optionRow}>
+						<div style={label}>Keyboard shortcuts</div>
+						<div style={rightRow}>
+							<Checkbox
+								checked={enabled}
+								name="keyboard-shortcuts"
+								onChange={onEnabledChange}
+							/>
+						</div>
+					</label>
 				</>
 			)}
-			{displayedShortcutGroups.map((group, groupIndex) => (
+			{visibleShortcutGroups.map((group, groupIndex) => (
 				<div key={group.name}>
 					<p style={shortcutSectionTitle}>{group.name}</p>
 					<div role="list" aria-label={group.name}>
