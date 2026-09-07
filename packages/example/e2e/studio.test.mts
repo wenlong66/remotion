@@ -1839,9 +1839,54 @@ test.describe('visual mode', () => {
 			await expect(
 				dialog.getByText('Keyboard shortcuts', {exact: true}),
 			).toBeVisible();
+			const keyboardShortcutsEnabled = dialog.getByRole('checkbox', {
+				name: 'Keyboard shortcuts',
+			});
+			await expect(keyboardShortcutsEnabled).toBeChecked();
+			await keyboardShortcutsEnabled.uncheck();
+			await expect(
+				dialog.getByRole('list', {name: 'Playback', exact: true}),
+			).toHaveCount(0);
+			await expect
+				.poll(() => fs.readFileSync(configFile, 'utf8'))
+				.toContain('Config.setKeyboardShortcutsEnabled(false);');
+			await keyboardShortcutsEnabled.check();
+			await expect
+				.poll(() => fs.readFileSync(configFile, 'utf8'))
+				.not.toContain('Config.setKeyboardShortcutsEnabled');
 			await expect(
 				dialog.getByRole('list', {name: 'Playback', exact: true}),
 			).toBeVisible();
+			const fixedShortcutRow = dialog
+				.getByRole('listitem')
+				.filter({hasText: '1 second back'});
+			await expect(fixedShortcutRow.getByRole('button')).toHaveCount(0);
+			const playPauseShortcut = dialog.getByRole('button', {
+				name: 'Change shortcut for Play / Pause',
+			});
+			const playPauseActions = dialog.getByRole('button', {
+				name: 'Actions for Play / Pause',
+			});
+			await expect(playPauseActions).toBeVisible();
+			await playPauseActions.click();
+			await page.getByText('Remap shortcut', {exact: true}).click();
+			await expect(playPauseShortcut).toContainText('Press shortcut');
+			await page.keyboard.press('q');
+			await expect
+				.poll(() => fs.readFileSync(configFile, 'utf8'))
+				.toContain('Config.setKeyboardShortcuts({');
+			await expect(playPauseShortcut).toContainText('Q');
+			await playPauseActions.click();
+			await expect(
+				page.getByText('Reset to default', {exact: true}),
+			).toBeVisible();
+			await page.getByText('Remap shortcut', {exact: true}).click();
+			await expect(playPauseShortcut).toContainText('Press shortcut');
+			await page.keyboard.press('Space');
+			await expect
+				.poll(() => fs.readFileSync(configFile, 'utf8'))
+				.not.toContain("'playPause'");
+			await expect(playPauseShortcut).toContainText('Space');
 			await dialog.getByRole('button', {name: 'Studio', exact: true}).click();
 
 			const askAIEnabled = dialog.getByTitle('Ask AI enabled', {exact: true});
