@@ -128,6 +128,12 @@ export type ExtraPackage = {
 
 export const extraPackages: ExtraPackage[] = [
 	{
+		name: '@huggingface/transformers',
+		version: '4.2.0',
+		description: 'Machine learning models in the browser',
+		docsUrl: 'https://huggingface.co/docs/transformers.js',
+	},
+	{
 		name: 'mediabunny',
 		version: '1.55.5',
 		description: 'Multimedia library used by Remotion',
