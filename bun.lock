@@ -583,6 +583,7 @@
         "@remotion/three": "workspace:*",
         "@remotion/transitions": "workspace:*",
         "@remotion/vercel": "workspace:*",
+        "@remotion/video-matting": "workspace:*",
         "@remotion/web-renderer": "workspace:*",
         "@remotion/webcodecs": "workspace:*",
         "@remotion/whisper-web": "workspace:*",
@@ -830,6 +831,7 @@
         "@remotion/tailwind-v4": "workspace:*",
         "@remotion/three": "workspace:*",
         "@remotion/transitions": "workspace:*",
+        "@remotion/video-matting": "workspace:*",
         "@remotion/webcodecs": "workspace:*",
         "@remotion/whisper-web": "workspace:*",
         "@remotion/whisper-webgpu": "workspace:*",
@@ -2766,6 +2768,19 @@
         "@vercel/sandbox": ">=1.0.0",
       },
     },
+    "packages/video-matting": {
+      "name": "@remotion/video-matting",
+      "version": "4.0.521",
+      "dependencies": {
+        "@huggingface/transformers": "catalog:",
+        "mediabunny": "catalog:",
+      },
+      "devDependencies": {
+        "@remotion/eslint-config-internal": "workspace:*",
+        "@typescript/native-preview": "catalog:",
+        "eslint": "catalog:",
+      },
+    },
     "packages/web-renderer": {
       "name": "@remotion/web-renderer",
       "version": "4.0.521",
@@ -4638,6 +4653,8 @@
     "@remotion/transitions": ["@remotion/transitions@workspace:packages/transitions"],
 
     "@remotion/vercel": ["@remotion/vercel@workspace:packages/vercel"],
+
+    "@remotion/video-matting": ["@remotion/video-matting@workspace:packages/video-matting"],
 
     "@remotion/web-renderer": ["@remotion/web-renderer@workspace:packages/web-renderer"],
 

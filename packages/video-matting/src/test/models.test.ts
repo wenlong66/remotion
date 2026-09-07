@@ -1,0 +1,159 @@
+import {expect, test} from 'bun:test';
+import {
+	canUseVideoMatting,
+	VideoMattingUnsupportedReason,
+} from '../can-use-video-matting';
+import {
+	getAvailableVideoMattingModels,
+	getVideoMattingModelInfo,
+} from '../models';
+
+test('returns public metadata without mutable internal model settings', () => {
+	const models = getAvailableVideoMattingModels();
+
+	expect(models).toEqual([
+		{
+			name: 'modnet',
+			modelId: 'Xenova/modnet',
+			purpose: 'person',
+			experimental: false,
+			webGpuDownloadSize: 25_888_640,
+		},
+		{
+			name: 'ben2-base',
+			modelId: 'onnx-community/BEN2-ONNX',
+			purpose: 'general',
+			experimental: true,
+			webGpuDownloadSize: 219_121_675,
+		},
+	]);
+
+	models[0].experimental = true;
+	expect(getAvailableVideoMattingModels()[0].experimental).toBe(false);
+});
+
+test('rejects unsupported runtime model values', () => {
+	expect(() => getVideoMattingModelInfo('not-a-model' as never)).toThrow(
+		'Unsupported video matting model "not-a-model". Available models: modnet, ben2-base.',
+	);
+	expect(() => getVideoMattingModelInfo('toString' as never)).toThrow(
+		'Unsupported video matting model "toString". Available models: modnet, ben2-base.',
+	);
+});
+
+test('requires shader-f16 only for the fp16 BEN2 model', async () => {
+	const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+	const originalNavigator = Object.getOwnPropertyDescriptor(
+		globalThis,
+		'navigator',
+	);
+	const features = new Set<string>();
+	Object.defineProperty(globalThis, 'window', {
+		configurable: true,
+		value: {isSecureContext: true},
+	});
+	Object.defineProperty(globalThis, 'navigator', {
+		configurable: true,
+		value: {
+			gpu: {
+				requestAdapter: () => Promise.resolve({features}),
+			},
+		},
+	});
+
+	try {
+		expect(await canUseVideoMatting({model: 'modnet'})).toEqual({
+			supported: true,
+		});
+		expect(await canUseVideoMatting({model: 'ben2-base'})).toEqual({
+			supported: false,
+			reason: VideoMattingUnsupportedReason.ShaderF16Unavailable,
+			detailedReason:
+				'The video matting model "ben2-base" requires the WebGPU shader-f16 feature, which is unavailable on this adapter.',
+		});
+
+		features.add('shader-f16');
+		expect(await canUseVideoMatting({model: 'ben2-base'})).toEqual({
+			supported: true,
+		});
+	} finally {
+		if (originalWindow) {
+			Object.defineProperty(globalThis, 'window', originalWindow);
+		} else {
+			delete (globalThis as {window?: unknown}).window;
+		}
+
+		if (originalNavigator) {
+			Object.defineProperty(globalThis, 'navigator', originalNavigator);
+		} else {
+			delete (globalThis as {navigator?: unknown}).navigator;
+		}
+	}
+});
+
+test('supports a secure worker with OffscreenCanvas and WebGPU', async () => {
+	const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+	const originalNavigator = Object.getOwnPropertyDescriptor(
+		globalThis,
+		'navigator',
+	);
+	const originalOffscreenCanvas = Object.getOwnPropertyDescriptor(
+		globalThis,
+		'OffscreenCanvas',
+	);
+	const originalSecureContext = Object.getOwnPropertyDescriptor(
+		globalThis,
+		'isSecureContext',
+	);
+	delete (globalThis as {window?: unknown}).window;
+	Object.defineProperty(globalThis, 'OffscreenCanvas', {
+		configurable: true,
+		value: class FakeOffscreenCanvas {},
+	});
+	Object.defineProperty(globalThis, 'isSecureContext', {
+		configurable: true,
+		value: true,
+	});
+	Object.defineProperty(globalThis, 'navigator', {
+		configurable: true,
+		value: {
+			gpu: {
+				requestAdapter: () => Promise.resolve({features: new Set<string>()}),
+			},
+		},
+	});
+
+	try {
+		expect(await canUseVideoMatting()).toEqual({supported: true});
+	} finally {
+		if (originalWindow) {
+			Object.defineProperty(globalThis, 'window', originalWindow);
+		}
+
+		if (originalNavigator) {
+			Object.defineProperty(globalThis, 'navigator', originalNavigator);
+		} else {
+			delete (globalThis as {navigator?: unknown}).navigator;
+		}
+
+		if (originalOffscreenCanvas) {
+			Object.defineProperty(
+				globalThis,
+				'OffscreenCanvas',
+				originalOffscreenCanvas,
+			);
+		} else {
+			delete (globalThis as {OffscreenCanvas?: unknown}).OffscreenCanvas;
+		}
+
+		if (originalSecureContext) {
+			Object.defineProperty(
+				globalThis,
+				'isSecureContext',
+				originalSecureContext,
+			);
+		} else {
+			delete (globalThis as {isSecureContext?: unknown}).isSecureContext;
+		}
+	}
+});

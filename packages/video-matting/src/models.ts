@@ -1,0 +1,64 @@
+export const VIDEO_MATTING_MODELS = ['modnet', 'ben2-base'] as const;
+
+export type VideoMattingModel = (typeof VIDEO_MATTING_MODELS)[number];
+
+export type VideoMattingModelInfo = {
+	name: VideoMattingModel;
+	modelId: string;
+	purpose: 'person' | 'general';
+	experimental: boolean;
+	webGpuDownloadSize: number;
+};
+
+type InternalVideoMattingModelInfo = VideoMattingModelInfo & {
+	revision: string;
+	dtype: 'fp32' | 'fp16';
+	requiresShaderF16: boolean;
+};
+
+const MODEL_INFO: Record<VideoMattingModel, InternalVideoMattingModelInfo> = {
+	modnet: {
+		name: 'modnet',
+		modelId: 'Xenova/modnet',
+		purpose: 'person',
+		experimental: false,
+		webGpuDownloadSize: 25_888_640,
+		revision: 'fa2fa546052fba4c08921230a26cc69a333fca12',
+		dtype: 'fp32',
+		requiresShaderF16: false,
+	},
+	'ben2-base': {
+		name: 'ben2-base',
+		modelId: 'onnx-community/BEN2-ONNX',
+		purpose: 'general',
+		experimental: true,
+		webGpuDownloadSize: 219_121_675,
+		revision: 'c552aa82688edce09f0ac9d2e31ad53d9d629010',
+		dtype: 'fp16',
+		requiresShaderF16: true,
+	},
+};
+
+export const getAvailableVideoMattingModels = (): VideoMattingModelInfo[] => {
+	return VIDEO_MATTING_MODELS.map((model) => {
+		const {
+			revision: _revision,
+			dtype: _dtype,
+			requiresShaderF16: _requiresShaderF16,
+			...info
+		} = MODEL_INFO[model];
+		return {...info};
+	});
+};
+
+export const getVideoMattingModelInfo = (
+	model: VideoMattingModel,
+): InternalVideoMattingModelInfo => {
+	if (!Object.hasOwn(MODEL_INFO, model)) {
+		throw new Error(
+			`Unsupported video matting model "${model}". Available models: ${VIDEO_MATTING_MODELS.join(', ')}.`,
+		);
+	}
+
+	return MODEL_INFO[model];
+};

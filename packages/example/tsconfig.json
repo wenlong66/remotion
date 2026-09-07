@@ -43,6 +43,7 @@
 		{"path": "../webcodecs"},
 		{"path": "../whisper-web"},
 		{"path": "../whisper-webgpu"},
+		{"path": "../video-matting"},
 		{"path": "../studio-protocol"},
 		{"path": "../light-leaks"},
 		{"path": "../mac-cursors"},

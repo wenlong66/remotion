@@ -1,0 +1,27 @@
+---
+image: /generated/articles-docs-video-matting-video-matting-models.png
+title: VIDEO_MATTING_MODELS
+crumb: '@remotion/video-matting'
+---
+
+# VIDEO_MATTING_MODELS<AvailableFrom v="4.0.522" />
+
+A readonly array containing the model names supported by `@remotion/video-matting`.
+
+```ts twoslash title="models.ts"
+import {VIDEO_MATTING_MODELS} from '@remotion/video-matting';
+
+console.log(VIDEO_MATTING_MODELS);
+// ['modnet', 'ben2-base']
+```
+
+Use [`getAvailableVideoMattingModels()`](/docs/video-matting/get-available-video-matting-models) to retrieve model metadata such as purpose, download size, and whether a model is experimental.
+
+## Compatibility
+
+<CompatibilityTable chrome firefox safari nodejs="" bun="" serverlessFunctions="" clientSideRendering={false} serverSideRendering player studio hideServers />
+
+## See also
+
+- [`getAvailableVideoMattingModels()`](/docs/video-matting/get-available-video-matting-models)
+- [`separateVideoLayers()`](/docs/video-matting/separate-video-layers)

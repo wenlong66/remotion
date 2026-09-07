@@ -304,6 +304,7 @@ import {
 } from './TransitionSeriesOverlay';
 import {TriangleComp} from './Triangle';
 import {NewVideoBufferStateComp} from './VideoInterruptedByForeignBuffer';
+import {VideoMatting} from './VideoMatting';
 import {VideoTestingPlayback} from './VideoTesting/playback';
 import {VideoTestingTrim} from './VideoTesting/trim';
 import {RemotionMediaVideoTexture} from './VideoTexture';
@@ -2709,6 +2710,12 @@ export const Index: React.FC = () => {
 				component={WhisperWebGpu}
 				width={900}
 				height={900}
+			/>
+			<Still
+				id="video-matting"
+				component={VideoMatting}
+				width={1200}
+				height={1000}
 			/>
 			<Composition
 				id="empty"
