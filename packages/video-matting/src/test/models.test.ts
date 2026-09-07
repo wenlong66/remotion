@@ -3,13 +3,10 @@ import {
 	canUseVideoMatting,
 	VideoMattingUnsupportedReason,
 } from '../can-use-video-matting';
-import {
-	getAvailableVideoMattingModels,
-	getVideoMattingModelInfo,
-} from '../models';
+import {getAvailableModels, getVideoMattingModelInfo} from '../models';
 
 test('returns public metadata without mutable internal model settings', () => {
-	const models = getAvailableVideoMattingModels();
+	const models = getAvailableModels();
 
 	expect(models).toEqual([
 		{
@@ -27,7 +24,7 @@ test('returns public metadata without mutable internal model settings', () => {
 	]);
 
 	models[0].purpose = 'general';
-	expect(getAvailableVideoMattingModels()[0].purpose).toBe('person');
+	expect(getAvailableModels()[0].purpose).toBe('person');
 });
 
 test('rejects unsupported runtime model values', () => {

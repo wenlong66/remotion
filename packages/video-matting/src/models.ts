@@ -41,7 +41,7 @@ const HOSTED_MODEL_IDS: Record<VideoMattingModel, string> = {
 	'ben2-base': 'ben2-base-v1',
 };
 
-export const getAvailableVideoMattingModels = (): VideoMattingModelInfo[] => {
+export const getAvailableModels = (): VideoMattingModelInfo[] => {
 	return VIDEO_MATTING_MODELS.map((model) => {
 		const {
 			revision: _revision,

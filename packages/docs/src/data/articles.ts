@@ -8472,13 +8472,13 @@ export const articles = [
 		slug: 'video-matting/dispose-video-matting-model',
 	},
 	{
-		id: 'video-matting/get-available-video-matting-models',
-		title: 'getAvailableVideoMattingModels()',
-		relativePath: 'docs/video-matting/get-available-video-matting-models.mdx',
-		compId: 'articles-docs-video-matting-get-available-video-matting-models',
+		id: 'video-matting/get-available-models',
+		title: 'getAvailableModels()',
+		relativePath: 'docs/video-matting/get-available-models.mdx',
+		compId: 'articles-docs-video-matting-get-available-models',
 		crumb: '@remotion/video-matting',
 		noAi: false,
-		slug: 'video-matting/get-available-video-matting-models',
+		slug: 'video-matting/get-available-models',
 	},
 	{
 		id: 'video-matting/index',

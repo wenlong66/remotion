@@ -9,8 +9,8 @@ export const TableOfContents: React.FC = () => {
 				<strong>canUseVideoMatting()</strong>
 				<div>Check whether a model is supported</div>
 			</TOCItem>
-			<TOCItem link="/docs/video-matting/get-available-video-matting-models">
-				<strong>getAvailableVideoMattingModels()</strong>
+			<TOCItem link="/docs/video-matting/get-available-models">
+				<strong>getAvailableModels()</strong>
 				<div>List models and their download sizes</div>
 			</TOCItem>
 			<TOCItem link="/docs/video-matting/is-video-matting-model-cached">

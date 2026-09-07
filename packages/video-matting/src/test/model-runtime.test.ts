@@ -320,12 +320,9 @@ test('coalesces initialization and defers disposal until active work is done', a
 });
 
 test('loads every public model from its immutable hosted model ID', async () => {
-	const {
-		disposeVideoMattingModel,
-		getAvailableVideoMattingModels,
-		loadVideoMattingModel,
-	} = await import('../index');
-	const models = getAvailableVideoMattingModels();
+	const {disposeVideoMattingModel, getAvailableModels, loadVideoMattingModel} =
+		await import('../index');
+	const models = getAvailableModels();
 
 	for (const model of models) {
 		await loadVideoMattingModel({model: model.name});

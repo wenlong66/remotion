@@ -42,7 +42,7 @@ The video matting model to use. Default: `modnet`.
 
 `modnet` is optimized for people. `ben2-base` supports more general foreground subjects, but is experimental and requires substantially more memory and a WebGPU adapter with `shader-f16` support.
 
-Use [`getAvailableVideoMattingModels()`](/docs/video-matting/get-available-video-matting-models) to inspect the available models.
+Use [`getAvailableModels()`](/docs/video-matting/get-available-models) to inspect the available models.
 
 ### audio?
 
@@ -213,6 +213,6 @@ Both layers are WebM files encoded with VP9. The foreground preserves alpha. Aud
 
 ## See also
 
-- [`getAvailableVideoMattingModels()`](/docs/video-matting/get-available-video-matting-models)
+- [`getAvailableModels()`](/docs/video-matting/get-available-models)
 - [`loadVideoMattingModel()`](/docs/video-matting/load-video-matting-model)
 - [`canUseVideoMatting()`](/docs/video-matting/can-use-video-matting)

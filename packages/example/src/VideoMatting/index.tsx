@@ -1,6 +1,6 @@
 import {
 	canUseVideoMatting,
-	getAvailableVideoMattingModels,
+	getAvailableModels,
 	separateVideoLayers,
 	type VideoMattingModel,
 } from '@remotion/video-matting';
@@ -16,7 +16,7 @@ const formatMegabytes = (bytes: number) => {
 };
 
 export const VideoMatting = () => {
-	const models = useMemo(() => getAvailableVideoMattingModels(), []);
+	const models = useMemo(() => getAvailableModels(), []);
 	const [file, setFile] = useState<File | null>(null);
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [selectedModel, setSelectedModel] =
